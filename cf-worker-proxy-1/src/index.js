@@ -3,7 +3,12 @@
  * Cloudflare Worker format (Fetch API) for IP rotation.
  */
 
-const API_BASE = "https://mobile.connected-car.vinfast.vn";
+const REGION_API_BASES = {
+  us: "https://mobile.connected-car.vinfastauto.us",
+  eu: "https://mobile.connected-car.vinfastauto.eu",
+  vn: "https://mobile.connected-car.vinfast.vn",
+};
+const DEFAULT_API_BASE = REGION_API_BASES.vn;
 
 const API_HEADERS = {
   "Content-Type": "application/json",
@@ -152,8 +157,11 @@ export default {
       if (vinHeader) proxyHeaders["X-Vin-Code"] = vinHeader;
       if (playerHeader) proxyHeaders["X-Player-Identifier"] = playerHeader;
 
+      const searchParams = new URLSearchParams(url.search);
+      const region = searchParams.get("region") || "vn";
+      const apiBase = REGION_API_BASES[region] || DEFAULT_API_BASE;
       const searchStr = url.search || "";
-      const targetUrl = `${API_BASE}/${apiPath}${searchStr}`;
+      const targetUrl = `${apiBase}/${apiPath}${searchStr}`;
 
       console.log(`[CF Worker Proxy] → ${request.method} ${targetUrl}`);
 
@@ -177,10 +185,23 @@ export default {
 };
 
 const AUTH_REGIONS = {
+  us: {
+    auth0_domain: "vinfast-us-prod.us.auth0.com",
+    auth0_client_id: "xhGY7XKDFSk1Q22rxidvwujfz0EPAbUP",
+    auth0_audience: "https://vinfast-us-prod.us.auth0.com/api/v2/",
+    api_base: "https://mobile.connected-car.vinfastauto.us",
+  },
+  eu: {
+    auth0_domain: "vinfast-eu-prod.eu.auth0.com",
+    auth0_client_id: "dxxtNkkhsPWW78x6s1BWQlmuCfLQrkze",
+    auth0_audience: "https://vinfast-eu-prod.eu.auth0.com/api/v2/",
+    api_base: "https://mobile.connected-car.vinfastauto.eu",
+  },
   vn: {
     auth0_domain: "vin3s.au.auth0.com",
     auth0_client_id: "jE5xt50qC7oIh1f32qMzA6hGznIU5mgH",
-    auth0_audience: "https://mobile.connected-car.vinfast.vn",
+    auth0_audience: "https://vin3s.au.auth0.com/api/v2/",
+    api_base: "https://mobile.connected-car.vinfast.vn",
   },
 };
 

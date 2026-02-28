@@ -29,6 +29,10 @@ function labelFromUrl(url) {
   catch { return url; }
 }
 
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export const POST = async ({ request, cookies, locals }) => {
   try {
     const { region, rememberMe } = await request.json();
@@ -49,36 +53,53 @@ export const POST = async ({ request, cookies, locals }) => {
       refresh_token: refreshToken,
     };
 
-    // Phase 1: Direct to Auth0 (no retry — fail fast)
-    let t0 = Date.now();
-    console.log(`[Refresh] → Auth0 direct`);
-    let response = await fetch(auth0Url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(auth0Payload),
-    });
-    let data = await response.json();
-    let elapsed = Date.now() - t0;
-    console.log(`[Refresh] ← direct ${response.status} (${elapsed}ms)`);
+    // Phase 1: Direct to Auth0 with retry (1 retry after 2s for transient 429)
+    let response = null;
+    let data = null;
 
-    // Phase 2: If 429, failover through backup proxies (different IPs)
-    if (response.status === 429) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const t0 = Date.now();
+      console.log(`[Refresh] → Auth0 direct${attempt > 0 ? ` (retry ${attempt})` : ""}`);
+      try {
+        response = await fetch(auth0Url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(auth0Payload),
+        });
+        data = await response.json();
+        const elapsed = Date.now() - t0;
+        console.log(`[Refresh] ← direct${attempt > 0 ? " retry" : ""} ${response.status} (${elapsed}ms)`);
+
+        if (response.status !== 429) break;
+
+        if (attempt === 0) {
+          console.log(`[Refresh] 429 from direct — waiting 2s before retry...`);
+          await delay(2000);
+        }
+      } catch (e) {
+        console.warn(`[Refresh] Direct${attempt > 0 ? " retry" : ""} error:`, e.message);
+        if (attempt === 0) await delay(1000);
+      }
+    }
+
+    // Phase 2: If 429, failover through backup proxies
+    if (!response || response.status === 429) {
       const backupUrls = getShuffledBackups(locals);
 
       for (const backupUrl of backupUrls) {
         const label = labelFromUrl(backupUrl);
         try {
           const backupTarget = `${backupUrl.replace(/\/$/, "")}/api/vf-auth`;
-          console.log(`[Refresh] 429 — failover to: ${label}`);
+          console.log(`[Refresh] → backup: ${label}`);
 
-          t0 = Date.now();
+          const t0 = Date.now();
           const backupResponse = await fetch(backupTarget, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: "refresh", region, refreshToken }),
           });
           const backupData = await backupResponse.json();
-          elapsed = Date.now() - t0;
+          const elapsed = Date.now() - t0;
           console.log(`[Refresh] ← ${label} ${backupResponse.status} (${elapsed}ms)`);
 
           if (backupResponse.status !== 429) {
@@ -90,6 +111,14 @@ export const POST = async ({ request, cookies, locals }) => {
           console.warn(`[Refresh] Backup ${label} failed:`, e.message);
         }
       }
+    }
+
+    // Network failure
+    if (!response || !data) {
+      return new Response(
+        JSON.stringify({ error: "Could not reach authentication server" }),
+        { status: 503, headers: { "Content-Type": "application/json" } },
+      );
     }
 
     if (!response.ok) {

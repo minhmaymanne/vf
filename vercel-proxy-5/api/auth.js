@@ -8,10 +8,20 @@
  */
 
 const REGIONS = {
+  us: {
+    auth0_domain: "vinfast-us-prod.us.auth0.com",
+    auth0_client_id: "xhGY7XKDFSk1Q22rxidvwujfz0EPAbUP",
+    auth0_audience: "https://vinfast-us-prod.us.auth0.com/api/v2/",
+  },
+  eu: {
+    auth0_domain: "vinfast-eu-prod.eu.auth0.com",
+    auth0_client_id: "dxxtNkkhsPWW78x6s1BWQlmuCfLQrkze",
+    auth0_audience: "https://vinfast-eu-prod.eu.auth0.com/api/v2/",
+  },
   vn: {
     auth0_domain: "vin3s.au.auth0.com",
     auth0_client_id: "jE5xt50qC7oIh1f32qMzA6hGznIU5mgH",
-    auth0_audience: "https://mobile.connected-car.vinfast.vn",
+    auth0_audience: "https://vin3s.au.auth0.com/api/v2/",
   },
 };
 

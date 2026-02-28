@@ -215,11 +215,83 @@ class VinFastAPI {
     return headers;
   }
 
+  // Auth0 region configs (for direct browser auth fallback)
+  static AUTH0_CONFIGS = {
+    us: { domain: "vinfast-us-prod.us.auth0.com", client_id: "xhGY7XKDFSk1Q22rxidvwujfz0EPAbUP", audience: "https://vinfast-us-prod.us.auth0.com/api/v2/" },
+    eu: { domain: "vinfast-eu-prod.eu.auth0.com", client_id: "dxxtNkkhsPWW78x6s1BWQlmuCfLQrkze", audience: "https://vinfast-eu-prod.eu.auth0.com/api/v2/" },
+    vn: { domain: "vin3s.au.auth0.com", client_id: "jE5xt50qC7oIh1f32qMzA6hGznIU5mgH", audience: "https://vin3s.au.auth0.com/api/v2/" },
+  };
+
+  /**
+   * Direct browser auth: call Auth0 from user's browser IP (bypasses server IP block).
+   * Tokens are then sent to /api/set-tokens to store as HttpOnly cookies.
+   */
+  async _directBrowserAuth(email, password, region, rememberMe) {
+    const cfg = VinFastAPI.AUTH0_CONFIGS[region] || VinFastAPI.AUTH0_CONFIGS.vn;
+    const auth0Url = `https://${cfg.domain}/oauth/token`;
+
+    const t0 = Date.now();
+    const auth0Response = await fetch(auth0Url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: cfg.client_id,
+        audience: cfg.audience,
+        grant_type: "password",
+        scope: "offline_access openid profile email",
+        username: email,
+        password,
+      }),
+    });
+
+    const data = await auth0Response.json();
+    const elapsed = Date.now() - t0;
+    console.log(`%c[Auth] Browser direct → ${auth0Response.status} (${elapsed}ms)`, auth0Response.ok ? "color:#4ade80;font-weight:bold" : "color:#ef4444;font-weight:bold");
+
+    if (!auth0Response.ok) {
+      if (auth0Response.status === 403 && data.error === "invalid_grant") {
+        throw new Error("Incorrect email or password.");
+      }
+      if (auth0Response.status === 429) {
+        throw new Error("Too many login attempts. Please wait a few minutes.");
+      }
+      throw new Error(data.error_description || data.message || "Authentication failed");
+    }
+
+    // Send tokens to server for HttpOnly cookie storage
+    const setResponse = await fetch("/api/set-tokens", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_in: data.expires_in,
+        region,
+        rememberMe,
+      }),
+    });
+
+    if (!setResponse.ok) {
+      throw new Error("Failed to store authentication tokens");
+    }
+
+    const setResult = await setResponse.json();
+    if (setResult.tokenExpiresAt) {
+      this.tokenExpiresAt = setResult.tokenExpiresAt;
+    }
+
+    this.isLoggedIn = true;
+    this.saveSession();
+    console.log("%c[Auth] Browser direct auth successful — tokens stored in HttpOnly cookies", "color:#4ade80;font-weight:bold");
+
+    return { success: true };
+  }
+
   async authenticate(email, password, region = "vn", rememberMe = false) {
     this.setRegion(region);
     this.rememberMe = rememberMe;
 
-    // Use local proxy
+    // Phase 1: Try server-side auth (proxy handles cookies + backup failover)
     const url = `/api/login`;
     const payload = {
       email,
@@ -254,22 +326,35 @@ class VinFastAPI {
         }
       }
 
+      // Phase 2: If server got 429 (IP blocked), fallback to direct browser auth
+      if (response.status === 429) {
+        console.log("%c[Auth] Server blocked (429) — trying direct browser auth...", "color:#f59e0b;font-weight:bold");
+        return await this._directBrowserAuth(email, password, region, rememberMe);
+      }
+
       if (!response.ok) {
         let errorMessage = "An unexpected error occurred. Please try again.";
+
         if (result && result.message) {
           errorMessage = result.message;
+        } else if (result && result.error_description) {
+          errorMessage = result.error_description;
         }
 
-        if (response.status === 401) {
-          errorMessage =
-            "Incorrect email or password. Please check your credentials.";
-        } else if (response.status === 403) {
-          errorMessage =
-            "Access denied. Your account may be locked or restricted.";
-        } else if (response.status === 429) {
-          errorMessage = "Too many attempts. Please try again later.";
-        } else if (response.status >= 500) {
-          errorMessage = "VinFast server error. Please try again later.";
+        if (!result?.message && !result?.error_description) {
+          if (response.status === 401) {
+            errorMessage = "Incorrect email or password. Please check your credentials.";
+          } else if (response.status === 403) {
+            if (result?.error === "invalid_grant") {
+              errorMessage = "Incorrect email or password.";
+            } else {
+              errorMessage = "Access denied. Your account may be locked or restricted.";
+            }
+          } else if (response.status === 503) {
+            errorMessage = "Could not reach authentication server. Please try again.";
+          } else if (response.status >= 500) {
+            errorMessage = "VinFast server error. Please try again later.";
+          }
         }
 
         throw new Error(errorMessage);
@@ -285,6 +370,11 @@ class VinFastAPI {
 
       return { success: true };
     } catch (error) {
+      // If server auth threw a network error, also try direct browser auth
+      if (error.message === "Failed to fetch" || error.name === "TypeError") {
+        console.log("%c[Auth] Server unreachable — trying direct browser auth...", "color:#f59e0b;font-weight:bold");
+        return await this._directBrowserAuth(email, password, region, rememberMe);
+      }
       console.error("Auth Error:", error);
       throw error;
     }

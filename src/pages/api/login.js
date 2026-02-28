@@ -29,6 +29,13 @@ function labelFromUrl(url) {
   catch { return url; }
 }
 
+/**
+ * Delay helper for retry backoff
+ */
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export const GET = async () => {
   return new Response(
     JSON.stringify({ message: "Login API is active. Use POST to authenticate." }),
@@ -53,56 +60,103 @@ export const POST = async ({ request, cookies, locals }) => {
 
     const authLog = [];
 
-    // Phase 1: Direct to Auth0 (no retry — fail fast)
-    let t0 = Date.now();
-    console.log(`[Login] → Auth0 direct`);
-    let response = await fetch(auth0Url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(auth0Payload),
-    });
-    let data = await response.json();
-    let elapsed = Date.now() - t0;
-    authLog.push({ via: "direct", status: response.status, ms: elapsed });
-    console.log(`[Login] ← direct ${response.status} (${elapsed}ms)`);
+    // Phase 1: Direct to Auth0 with retry (1 retry after 2s for transient 429)
+    let response = null;
+    let data = null;
 
-    // Phase 2: If 429, failover through backup proxies (different IPs)
-    if (response.status === 429) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const t0 = Date.now();
+      console.log(`[Login] → Auth0 direct${attempt > 0 ? ` (retry ${attempt})` : ""}`);
+      try {
+        response = await fetch(auth0Url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(auth0Payload),
+        });
+        data = await response.json();
+        const elapsed = Date.now() - t0;
+        authLog.push({ via: attempt === 0 ? "direct" : "direct-retry", status: response.status, ms: elapsed });
+        console.log(`[Login] ← direct${attempt > 0 ? " retry" : ""} ${response.status} (${elapsed}ms)`);
+
+        // Success or client error (not rate limit) → stop
+        if (response.status !== 429) break;
+
+        // On first 429, wait 2s before retry
+        if (attempt === 0) {
+          console.log(`[Login] 429 from direct — waiting 2s before retry...`);
+          await delay(2000);
+        }
+      } catch (e) {
+        authLog.push({ via: attempt === 0 ? "direct" : "direct-retry", status: "error", error: e.message });
+        console.warn(`[Login] Direct${attempt > 0 ? " retry" : ""} error:`, e.message);
+        if (attempt === 0) await delay(1000);
+      }
+    }
+
+    // Phase 2: If still 429 or no response, failover through backup proxies
+    if (!response || response.status === 429) {
       const backupUrls = getShuffledBackups(locals);
 
-      for (const backupUrl of backupUrls) {
-        const label = labelFromUrl(backupUrl);
-        try {
-          const backupTarget = `${backupUrl.replace(/\/$/, "")}/api/vf-auth`;
-          console.log(`[Login] 429 — failover to: ${label}`);
+      if (backupUrls.length > 0) {
+        console.log(`[Login] Trying ${backupUrls.length} backup proxies...`);
 
-          t0 = Date.now();
-          const backupResponse = await fetch(backupTarget, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "login", email, password, region }),
-          });
-          const backupData = await backupResponse.json();
-          elapsed = Date.now() - t0;
+        for (const backupUrl of backupUrls) {
+          const label = labelFromUrl(backupUrl);
+          try {
+            const backupTarget = `${backupUrl.replace(/\/$/, "")}/api/vf-auth`;
+            console.log(`[Login] → backup: ${label}`);
 
-          authLog.push({ via: label, status: backupResponse.status, ms: elapsed });
-          console.log(`[Login] ← ${label} ${backupResponse.status} (${elapsed}ms)`);
+            const t0 = Date.now();
+            const backupResponse = await fetch(backupTarget, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "login", email, password, region }),
+            });
+            const backupData = await backupResponse.json();
+            const elapsed = Date.now() - t0;
 
-          if (backupResponse.status !== 429) {
-            response = backupResponse;
-            data = backupData;
-            break;
+            authLog.push({ via: label, status: backupResponse.status, ms: elapsed });
+            console.log(`[Login] ← ${label} ${backupResponse.status} (${elapsed}ms)`);
+
+            if (backupResponse.status !== 429) {
+              response = backupResponse;
+              data = backupData;
+              break;
+            }
+          } catch (e) {
+            authLog.push({ via: label, status: "error", error: e.message });
+            console.warn(`[Login] Backup ${label} failed:`, e.message);
           }
-        } catch (e) {
-          authLog.push({ via: label, status: "error", error: e.message });
-          console.warn(`[Login] Backup ${label} failed:`, e.message);
         }
+      } else {
+        console.warn(`[Login] No backup proxies configured — cannot failover from 429`);
       }
+    }
+
+    // No response at all (network failure)
+    if (!response || !data) {
+      return new Response(JSON.stringify({
+        error: "network_error",
+        error_description: "Could not reach authentication server. Please check your connection and try again.",
+        message: "Could not reach authentication server. Please check your connection and try again.",
+        _authLog: authLog,
+      }), {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Return error if still not OK
     if (!response.ok) {
-      return new Response(JSON.stringify({ ...data, _authLog: authLog }), {
+      // Enhance error message for known Auth0 errors
+      let message = data.error_description || data.message || "Authentication failed";
+      if (response.status === 429 || data.error === "too_many_attempts") {
+        message = "Auth0 has temporarily blocked login from this server due to rate limiting. Please try again in a few minutes.";
+      } else if (response.status === 403 && data.error === "invalid_grant") {
+        message = "Incorrect email or password.";
+      }
+
+      return new Response(JSON.stringify({ ...data, message, _authLog: authLog }), {
         status: response.status,
         headers: { "Content-Type": "application/json" },
       });
