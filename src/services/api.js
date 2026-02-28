@@ -587,6 +587,33 @@ class VinFastAPI {
     }
   }
 
+  // --- REST Telemetry Fallback ---
+
+  /**
+   * Fetch telemetry data via REST (app/ping) — used as fallback when MQTT
+   * doesn't deliver data (e.g., list_resource returns 403).
+   *
+   * @param {string} vin - Vehicle VIN
+   * @param {Array<{objectId:string, instanceId:string, resourceId:string}>} requestObjects
+   * @returns {Promise<Array<{deviceKey:string, value:string, timestamp:number}>>}
+   */
+  async fetchTelemetryPing(vin, requestObjects) {
+    if (!vin || !requestObjects?.length) return [];
+    const proxyPath = `ccaraccessmgmt/api/v1/telemetry/app/ping`;
+    const url = `/api/proxy/${proxyPath}?region=${this.region}`;
+    const response = await this._fetchWithRetry(url, {
+      method: "POST",
+      headers: this._getHeaders(vin),
+      body: JSON.stringify(requestObjects),
+    });
+    if (!response.ok) {
+      throw new Error(`Telemetry ping failed: ${response.status}`);
+    }
+    const json = await response.json();
+    // Response: { code: 200, data: [{deviceKey, value, timestamp}] }
+    return json.data || json || [];
+  }
+
   // --- Charging Station API ---
 
   async searchChargingStations(latitude, longitude, excludeFavorite = false) {

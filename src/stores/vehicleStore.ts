@@ -1,9 +1,9 @@
 import { map, atom } from "nanostores";
 import { api } from "../services/api";
 import { DEFAULT_LOCATION } from "../constants/vehicle";
-// refreshTimerStore removed — MQTT is the sole data source, no REST polling.
 import { getMqttClient } from "../services/mqttClient";
-// list_resource registration removed — MQTT delivers data without it.
+import { CORE_TELEMETRY_ALIASES, STATIC_ALIAS_MAP_EXPORT } from "../config/vinfast";
+import { parseTelemetry } from "../utils/telemetryMapper";
 
 export interface VehicleInfo {
   vinCode: string;
@@ -884,8 +884,126 @@ export const switchVehicle = async (targetVin: string) => {
     .switchVin(targetVin)
     .catch((err) => console.warn("switchVehicle: MQTT switch failed", err));
 
-  // Telemetry comes from MQTT — no REST fetch needed.
+  // 5. Schedule REST telemetry fallback if MQTT doesn't deliver within 15s.
+  // Note: app/ping may return 403 on some VinFast API configs — handled gracefully.
+  scheduleRestTelemetryFallback(targetVin);
 };
+
+// --- REST Telemetry Fallback ---
+// When MQTT doesn't deliver data (e.g., list_resource returns 403),
+// fall back to REST polling via app/ping endpoint.
+
+let restFallbackTimer: ReturnType<typeof setTimeout> | null = null;
+let restFallbackVin: string | null = null;
+const REST_FALLBACK_DELAY_MS = 15_000; // Wait 15s for MQTT before REST fallback
+
+function scheduleRestTelemetryFallback(vin: string) {
+  // Cancel any pending fallback for a different VIN
+  if (restFallbackTimer) {
+    clearTimeout(restFallbackTimer);
+    restFallbackTimer = null;
+  }
+  restFallbackVin = vin;
+
+  restFallbackTimer = setTimeout(() => {
+    const current = vehicleStore.get();
+    // Only fetch via REST if MQTT hasn't delivered battery data yet
+    if (current.vin === vin && current.battery_level === null) {
+      console.log(
+        `%c[REST Fallback] MQTT didn't deliver data in ${REST_FALLBACK_DELAY_MS / 1000}s — fetching via REST app/ping`,
+        "color:#f59e0b;font-weight:bold",
+      );
+      void fetchTelemetryViaRest(vin);
+    }
+  }, REST_FALLBACK_DELAY_MS);
+}
+
+/**
+ * Fetch core telemetry via REST app/ping endpoint.
+ * Uses the same alias→field mapping as MQTT for consistent data handling.
+ */
+export async function fetchTelemetryViaRest(vin: string) {
+  if (!vin) return;
+
+  // Build request objects from CORE_TELEMETRY_ALIASES using static alias map
+  const aliasMap = STATIC_ALIAS_MAP_EXPORT as Record<
+    string,
+    { objectId: string; instanceId: string; resourceId: string }
+  >;
+
+  const requestObjects = CORE_TELEMETRY_ALIASES.map((alias) => aliasMap[alias])
+    .filter(Boolean)
+    .map((r) => ({
+      objectId: r.objectId,
+      instanceId: r.instanceId,
+      resourceId: r.resourceId,
+    }));
+
+  if (requestObjects.length === 0) {
+    console.warn("[REST Fallback] No alias mappings found for core telemetry");
+    return;
+  }
+
+  try {
+    const rawData = await api.fetchTelemetryPing(vin, requestObjects);
+    if (!Array.isArray(rawData) || rawData.length === 0) {
+      console.warn("[REST Fallback] No telemetry data returned from app/ping");
+      return;
+    }
+
+    // Build pathToAlias map from static alias map (same format MQTT uses)
+    const pathToAlias: Record<string, string> = {};
+    for (const [alias, mapping] of Object.entries(aliasMap)) {
+      const m = mapping as { objectId: string; instanceId: string; resourceId: string };
+      const path = `/${parseInt(m.objectId, 10)}/${parseInt(m.instanceId, 10)}/${parseInt(m.resourceId, 10)}`;
+      pathToAlias[path] = alias;
+    }
+
+    // Normalize deviceKey format: "34101_00000_00000" → keep as-is for parseTelemetry
+    const normalizedData = rawData.map((item: any) => {
+      if (!item) return item;
+      // Ensure deviceKey uses underscore format that parseTelemetry expects
+      let dk = item.deviceKey || item.device_key || "";
+      if (dk.includes("/")) {
+        const parts = dk.split("/").filter(Boolean);
+        if (parts.length === 3) {
+          dk = `${parts[0]}_${parts[1]}_${parts[2]}`;
+        }
+      }
+      return { ...item, deviceKey: dk };
+    });
+
+    const parsed = parseTelemetry(normalizedData, pathToAlias);
+
+    if (Object.keys(parsed).length === 0) {
+      console.warn("[REST Fallback] parseTelemetry returned empty result");
+      return;
+    }
+
+    console.log(
+      `%c[REST Fallback] Got ${Object.keys(parsed).length} telemetry fields: ${Object.keys(parsed).slice(0, 5).join(", ")}...`,
+      "color:#22c55e;font-weight:bold",
+    );
+
+    // Update vehicle store with REST data (same as MQTT updateFromMqtt)
+    updateVehicleData({ ...parsed, vin } as Partial<VehicleState>);
+
+    // Clear refreshing state since we now have data
+    const current = vehicleStore.get();
+    if (current.isRefreshing && current.vin === vin) {
+      vehicleStore.setKey("isRefreshing" as any, false);
+    }
+
+    // Enrich location if coordinates available
+    const lat = parsed.latitude as number | undefined;
+    const lng = parsed.longitude as number | undefined;
+    if (lat && lng && isValidCoordPair(lat, lng)) {
+      void enrichLocationAndWeather(vin, lat, lng, false);
+    }
+  } catch (e: any) {
+    console.error("[REST Fallback] fetchTelemetryViaRest failed:", e.message || e);
+  }
+}
 
 export const refreshVehicle = async (vin: string) => {
   if (!vin) return;
