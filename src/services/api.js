@@ -207,7 +207,7 @@ class VinFastAPI {
       "x-device-os-version": "Community",
       "x-device-locale": "vi-VN",
       "x-timezone": "Asia/Ho_Chi_Minh",
-      "x-device-identifier": "vfdashboard-community-edition",
+      "x-device-identifier": "b3f8a2c1-7d4e-4f9a-8b5c-1e6d3a2f9c7b",
     };
     const requestVin = vinOverride ?? this.vin;
     if (requestVin) headers["x-vin-code"] = requestVin;

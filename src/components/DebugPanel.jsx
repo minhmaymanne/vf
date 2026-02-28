@@ -130,7 +130,7 @@ export default function DebugPanel() {
             "x-vin-code": vin,
             "x-service-name": "CAPP",
             "x-device-platform": "android",
-            "x-device-identifier": "vfdashboard-community-edition",
+            "x-device-identifier": "b3f8a2c1-7d4e-4f9a-8b5c-1e6d3a2f9c7b",
           },
           body: JSON.stringify({ orderStatus: [3, 5, 7] }),
         });
@@ -185,7 +185,7 @@ export default function DebugPanel() {
             "x-vin-code": vin,
             "x-service-name": "CAPP",
             "x-device-platform": "android",
-            "x-device-identifier": "vfdashboard-community-edition",
+            "x-device-identifier": "b3f8a2c1-7d4e-4f9a-8b5c-1e6d3a2f9c7b",
           },
           body: JSON.stringify([{ objectId: "34101", instanceId: "0", resourceId: "0" }]),
         });

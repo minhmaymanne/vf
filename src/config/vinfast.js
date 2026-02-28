@@ -36,9 +36,9 @@ export const API_HEADERS = {
   "X-Device-OS-Version": "android 14",
   "X-Device-Locale": "vi-VN",
   "X-Timezone": "Asia/Ho_Chi_Minh",
-  "X-Device-Identifier": "vfdashboard-community-edition",
+  "X-Device-Identifier": "b3f8a2c1-7d4e-4f9a-8b5c-1e6d3a2f9c7b",
   "X-IMEI": "",
-  "User-Agent": "android - vfdashboard-community-edition - 2.17.5",
+  "User-Agent": "okhttp/4.12.0",
 };
 
 /**
