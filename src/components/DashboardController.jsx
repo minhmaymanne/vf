@@ -12,9 +12,14 @@ import { mqttStore } from "../stores/mqttStore";
 import { CORE_TELEMETRY_ALIASES } from "../config/vinfast";
 import staticAliasMap from "../config/static_alias_map.json";
 
+// Auto-clear isRefreshing after this many ms so the dashboard shows
+// REST-sourced vehicle info (name, model, etc.) even when MQTT is slow.
+const REFRESH_TIMEOUT_MS = 20_000;
+
 export default function DashboardController({ vin: initialVin }) {
   const isMounted = useRef(true);
   const firstMqttMessageAt = useRef(null);
+  const refreshTimer = useRef(null);
 
   // Init Effect
   useEffect(() => {
@@ -27,6 +32,12 @@ export default function DashboardController({ vin: initialVin }) {
     const mqttClient = getMqttClient();
     mqttClient.onTelemetryUpdate = (mqttVin, parsed, rawMessages) => {
       if (!isMounted.current) return;
+
+      // First MQTT data arrived — cancel the safety timeout
+      if (refreshTimer.current) {
+        clearTimeout(refreshTimer.current);
+        refreshTimer.current = null;
+      }
 
       // Measure time-to-first-data for diagnostics
       if (!firstMqttMessageAt.current) {
@@ -47,7 +58,9 @@ export default function DashboardController({ vin: initialVin }) {
       // Record connect time for perf measurement
       mqttClient._connectedAt = performance.now();
 
-      // Register core aliases to trigger T-Box data push (1 API call)
+      // Register core aliases to trigger T-Box data push (1 API call).
+      // If this 403s, the T-Box won't actively push — MQTT still receives
+      // periodic data but may be slow. The refresh timeout handles this.
       const coreResources = buildCoreResources();
       const regStart = performance.now();
       api.registerResources(connectedVin, coreResources).then(() => {
@@ -95,6 +108,21 @@ export default function DashboardController({ vin: initialVin }) {
         vehicleStore.setKey("isInitialized", true);
       }
 
+      // Safety timeout: auto-clear isRefreshing so the dashboard shows
+      // vehicle info from REST even if MQTT telemetry hasn't arrived yet.
+      if (vehicleStore.get().isRefreshing) {
+        refreshTimer.current = setTimeout(() => {
+          if (!isMounted.current) return;
+          const state = vehicleStore.get();
+          if (state.isRefreshing) {
+            console.warn(
+              `[Init] MQTT data not received within ${REFRESH_TIMEOUT_MS / 1000}s — clearing isRefreshing`,
+            );
+            vehicleStore.setKey("isRefreshing", false);
+          }
+        }, REFRESH_TIMEOUT_MS);
+      }
+
       // Start MQTT if not already started by switchVehicle
       if (targetVin && isMounted.current) {
         const mqttState = mqttStore.get();
@@ -113,6 +141,10 @@ export default function DashboardController({ vin: initialVin }) {
 
     return () => {
       isMounted.current = false;
+      if (refreshTimer.current) {
+        clearTimeout(refreshTimer.current);
+        refreshTimer.current = null;
+      }
       destroyMqttClient();
     };
   }, [initialVin]);

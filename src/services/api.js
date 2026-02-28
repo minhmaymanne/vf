@@ -183,9 +183,9 @@ class VinFastAPI {
     if (typeof window === "undefined") return;
     this.deleteCookie("vf_session");
     this._writeSessionToStorage(null);
-    // Also trigger backend to clear HttpOnly cookies if needed?
-    // Usually browser clears session cookies on close, but for explicit logout we might need an endpoint.
-    // For now, client side just forgets metadata.
+
+    // Clear HttpOnly cookies (access_token, refresh_token) via server endpoint
+    fetch("/api/logout", { method: "POST" }).catch(() => {});
 
     this.vin = null;
     this.userId = null;
