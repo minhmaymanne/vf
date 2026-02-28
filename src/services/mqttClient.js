@@ -471,61 +471,12 @@ export class MqttTelemetryClient {
       `/mobile/${vin}/push`,
       `monitoring/server/${vin}/push`,
       `/server/${vin}/remctrl`,
-      // Additional topics that may carry BMS/telemetry data
-      `/vehicles/${vin}/push`,
-      `/server/${vin}/push`,
     ];
   }
 
-  /**
-   * Request BMS/telemetry data by publishing to known T-Box command topics.
-   * Returns an array of { topic, success, error? } for each attempt.
-   */
-  requestBmsData(vin) {
-    if (!this.client?.connected || !vin) {
-      return Promise.resolve([{ topic: "n/a", success: false, error: "not connected" }]);
-    }
-
-    // BMS resources we want: SOH(1), battery type(110), serial(111), mfg date(113), capacity(82)
-    const bmsResources = [
-      { objectId: "34220", instanceId: "1", resourceId: "1" },   // SOH
-      { objectId: "34220", instanceId: "1", resourceId: "82" },  // Nominal capacity
-      { objectId: "34220", instanceId: "1", resourceId: "110" }, // Battery type
-      { objectId: "34220", instanceId: "1", resourceId: "111" }, // Battery serial
-      { objectId: "34220", instanceId: "1", resourceId: "113" }, // Mfg date
-      { objectId: "34183", instanceId: "1", resourceId: "7" },   // Ambient temp
-      { objectId: "34184", instanceId: "1", resourceId: "6" },   // Cabin temp
-    ];
-
-    const requestPayload = JSON.stringify({
-      version: "1.2",
-      timestamp: Date.now(),
-      trans_id: crypto.randomUUID(),
-      type: "list_resource",
-      content: bmsResources,
-    });
-
-    // Try publishing to several possible command topics
-    const commandTopics = [
-      `/server/${vin}/push`,
-      `/vehicles/${vin}/push/connected/request`,
-      `/mobile/${vin}/request`,
-    ];
-
-    const results = [];
-    const promises = commandTopics.map((topic) =>
-      new Promise((resolve) => {
-        this.client.publish(topic, requestPayload, { qos: 1 }, (err) => {
-          const r = { topic, success: !err, error: err?.message };
-          results.push(r);
-          console.log(`[MQTT] BMS request to ${topic}: ${err ? "FAIL " + err.message : "OK"}`);
-          resolve(r);
-        });
-      })
-    );
-
-    return Promise.all(promises).then(() => results);
-  }
+  // NOTE: requestBmsData via MQTT publish removed — AWS IoT Core policy
+  // only allows specific topics. Publishing/subscribing to unauthorized
+  // topics causes immediate disconnect, breaking all existing connections.
 
   _setActiveVin(vin) {
     if (!vin) return;
