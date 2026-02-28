@@ -810,6 +810,8 @@ const getVehicleBaseState = (
 
   return {
     vin: vehicleInfo.vinCode,
+    model: vehicleInfo.marketingName || vehicleInfo.vehicleName || vehicleInfo.vehicleType || "",
+    trim: vehicleInfo.vehicleVariant || "",
     marketingName: vehicleInfo.marketingName,
     vehicleVariant: vehicleInfo.vehicleVariant,
     color: vehicleInfo.exteriorColor || vehicleInfo.color,
@@ -826,6 +828,10 @@ const getVehicleBaseState = (
     warrantyExpirationDate: vehicleInfo.warrantyExpirationDate,
     warrantyMileage: vehicleInfo.warrantyMileage,
     battery_capacity_kwh: batteryCapacity,
+    // Seed odometer from REST if available (MQTT will override with live value)
+    ...(vehicleInfo.odometer != null && Number.isFinite(Number(vehicleInfo.odometer))
+      ? { odometer: Number(vehicleInfo.odometer) }
+      : {}),
   };
 };
 
