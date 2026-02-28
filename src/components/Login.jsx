@@ -113,7 +113,7 @@ export default function Login({ bgImage }) {
                   type="email"
                   required
                   className="relative block w-full rounded-xl border-gray-200 bg-gray-50 py-3.5 px-4 text-gray-900 focus:z-10 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 font-medium placeholder:text-gray-400 text-sm"
-                  placeholder="Email address"
+                  placeholder="Địa chỉ email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -123,7 +123,7 @@ export default function Login({ bgImage }) {
                   type="password"
                   required
                   className="relative block w-full rounded-xl border-gray-200 bg-gray-50 py-3.5 px-4 text-gray-900 focus:z-10 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 font-medium placeholder:text-gray-400 text-sm"
-                  placeholder="Password"
+                  placeholder="Mật khẩu"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -145,7 +145,7 @@ export default function Login({ bgImage }) {
                   htmlFor="remember-me"
                   className="ml-2 text-sm font-bold text-gray-500 uppercase tracking-wider"
                 >
-                  Remember Me
+                  Ghi nhớ
                 </label>
               </div>
 
@@ -154,7 +154,7 @@ export default function Login({ bgImage }) {
                   htmlFor="region"
                   className="font-bold text-gray-500 text-xs uppercase tracking-wider mr-2"
                 >
-                  Region
+                  Vùng
                 </label>
                 <div className="relative">
                   <button
@@ -163,10 +163,10 @@ export default function Login({ bgImage }) {
                     className="flex items-center gap-2 bg-transparent text-gray-900 text-sm font-bold focus:outline-none"
                   >
                     {region === "vn"
-                      ? "Vietnam"
+                      ? "Việt Nam"
                       : region === "us"
-                        ? "United States"
-                        : "Europe"}
+                        ? "Hoa Kỳ"
+                        : "Châu Âu"}
                     <svg
                       className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${regionDropdownOpen ? "rotate-180" : ""}`}
                       fill="none"
@@ -194,9 +194,9 @@ export default function Login({ bgImage }) {
                       {/* Menu */}
                       <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 p-1.5 z-20 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                         {[
-                          { val: "vn", label: "Vietnam" },
-                          { val: "us", label: "United States" },
-                          { val: "eu", label: "Europe" },
+                          { val: "vn", label: "Việt Nam" },
+                          { val: "us", label: "Hoa Kỳ" },
+                          { val: "eu", label: "Châu Âu" },
                         ].map((opt) => (
                           <button
                             key={opt.val}
@@ -249,7 +249,7 @@ export default function Login({ bgImage }) {
                     ></path>
                   </svg>
                 ) : (
-                  "Sign In"
+                  "Đăng nhập"
                 )}
               </button>
             </div>
@@ -270,8 +270,8 @@ export default function Login({ bgImage }) {
 
         {/* Trademark Disclaimer */}
         <p className="relative text-center text-[10px] leading-relaxed text-white/40 px-4">
-          Not affiliated with, endorsed, or sponsored by VinFast.
-          VinFast is a registered trademark of VinFast Commercial and Services Trading LLC.
+          Không liên kết, không được tài trợ hoặc ủng hộ bởi VinFast.
+          VinFast là nhãn hiệu đã đăng ký của Công ty TNHH Sản xuất và Kinh doanh VinFast.
         </p>
 
         {/* Footer: Github - Text - VF9 Club */}
@@ -300,8 +300,8 @@ export default function Login({ bgImage }) {
 
           {/* Center: Text */}
           <p className="text-gray-500 text-xs font-bold uppercase tracking-wider text-center">
-            Made with <span className="text-red-500 text-sm">❤️</span> in
-            Vietnam
+            Được tạo với <span className="text-red-500 text-sm">❤️</span> tại
+            Việt Nam
           </p>
 
           {/* Right: VF9 Club */}

@@ -35,16 +35,16 @@ class ErrorBoundary extends React.Component {
               </svg>
             </div>
             <h3 className="text-sm font-bold text-red-900 uppercase">
-              Component Error
+              Lỗi thành phần
             </h3>
             <p className="text-xs text-red-600 leading-relaxed max-w-[200px] mx-auto">
-              Something went wrong loading this part of the dashboard.
+              Đã xảy ra lỗi khi tải phần này của bảng điều khiển.
             </p>
             <button
               onClick={() => this.setState({ hasError: false })}
               className="px-4 py-2 bg-white border border-red-200 text-red-700 text-[10px] font-bold uppercase rounded-full hover:bg-red-50 transition-colors"
             >
-              Try Again
+              Thử lại
             </button>
           </div>
         )

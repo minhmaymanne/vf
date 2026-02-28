@@ -7,6 +7,7 @@ import {
 } from "../stores/vehicleStore";
 import { api } from "../services/api";
 import { mqttStore } from "../stores/mqttStore";
+import { themeStore, toggleTheme } from "../stores/themeStore";
 import AboutModal from "./AboutModal";
 
 // Generate a local SVG avatar to avoid third-party avatar requests.
@@ -23,15 +24,6 @@ function localAvatar(name) {
 
 // Weather Icon (Dynamic WMO Codes)
 const WeatherIcon = ({ temp, code }) => {
-  // WMO Weather Codes:
-  // 0: Clear sky
-  // 1-3: Partly cloudy
-  // 45,48: Fog
-  // 51-67: Drizzle/Rain
-  // 71-77: Snow
-  // 80-82: Showers
-  // 95-99: Thunderstorm
-
   let icon = (
     <svg
       className="w-5 h-5 text-blue-500"
@@ -46,14 +38,13 @@ const WeatherIcon = ({ temp, code }) => {
         d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
       ></path>
     </svg>
-  ); // Default Sun
+  );
 
   if (code !== undefined && code !== null) {
     if (code >= 1 && code <= 3) {
-      // Cloud
       icon = (
         <svg
-          className="w-5 h-5 text-gray-500"
+          className="w-5 h-5 text-gray-500 dark:text-gray-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -67,7 +58,6 @@ const WeatherIcon = ({ temp, code }) => {
         </svg>
       );
     } else if (code >= 45 && code <= 48) {
-      // Fog (Cloud + horizontal lines)
       icon = (
         <svg
           className="w-5 h-5 text-gray-400"
@@ -84,7 +74,6 @@ const WeatherIcon = ({ temp, code }) => {
         </svg>
       );
     } else if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
-      // Rain (Cloud + Drops)
       icon = (
         <svg
           className="w-5 h-5 text-blue-600"
@@ -101,7 +90,6 @@ const WeatherIcon = ({ temp, code }) => {
         </svg>
       );
     } else if (code >= 71 && code <= 77) {
-      // Snow (Snowflake)
       icon = (
         <svg
           className="w-5 h-5 text-cyan-300"
@@ -118,7 +106,6 @@ const WeatherIcon = ({ temp, code }) => {
         </svg>
       );
     } else if (code >= 95) {
-      // Thunder
       icon = (
         <svg
           className="w-5 h-5 text-amber-500"
@@ -138,9 +125,9 @@ const WeatherIcon = ({ temp, code }) => {
   }
 
   return (
-    <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+    <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full border border-blue-100 dark:border-blue-800">
       {icon}
-      <span className="text-sm font-bold text-blue-700">
+      <span className="text-sm font-bold text-blue-700 dark:text-blue-300">
         {temp !== null && temp !== undefined ? `${temp}°C` : "N/A"}
       </span>
     </div>
@@ -150,6 +137,7 @@ const WeatherIcon = ({ temp, code }) => {
 export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
   const vehicle = useStore(vehicleStore);
   const mqtt = useStore(mqttStore);
+  const theme = useStore(themeStore);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [toolsOpen, setToolsOpen] = React.useState(false);
   const [showAbout, setShowAbout] = React.useState(false);
@@ -160,7 +148,6 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
 
   const handleLogout = async () => {
     try {
-      // Best effort server logout
       await fetch(`${import.meta.env.PUBLIC_API_URL || ""}/api/logout`, {
         method: "POST",
         credentials: "include",
@@ -169,8 +156,6 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
       console.error("Logout failed", e);
     }
 
-    // Critical: Clear local session before redirecting
-    // This prevents Login page from auto-redirecting back to Dashboard
     if (api && typeof api.clearSession === "function") {
       api.clearSession();
     }
@@ -198,7 +183,7 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
     <div className="relative z-50 flex items-center justify-between py-2 mb-2 gap-2 md:gap-4 pr-1">
       {/* Left: Branding & Model */}
       <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
-        <div className="h-10 w-10 md:h-12 md:w-12 rounded-full overflow-hidden shadow-md border border-gray-100/50 shrink-0">
+        <div className="h-10 w-10 md:h-12 md:w-12 rounded-full overflow-hidden shadow-md border border-gray-100/50 dark:border-gray-700 shrink-0">
           <img
             src="/logo.png"
             alt="VF9 Club"
@@ -208,19 +193,19 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-col min-w-0">
             {!vehicle.vin ? (
-              <div className="h-6 w-48 bg-gray-100 animate-shimmer rounded"></div>
+              <div className="h-6 w-48 bg-gray-100 dark:bg-gray-700 animate-shimmer rounded"></div>
             ) : (
-              <h1 className="text-base md:text-2xl font-extrabold text-gray-900 tracking-tight leading-none truncate animate-blur-in">
+              <h1 className="text-base md:text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-none truncate animate-blur-in">
                 {vehicle.manufacturer} {vehicle.marketingName}
               </h1>
             )}
 
             {!vehicle.vin ? (
-              <div className="h-3 w-32 bg-gray-100 animate-shimmer rounded mt-2"></div>
+              <div className="h-3 w-32 bg-gray-100 dark:bg-gray-700 animate-shimmer rounded mt-2"></div>
             ) : (
               <div className="mt-1.5 flex items-center animate-blur-in">
                 <span
-                  className="text-[9px] md:text-xs text-gray-500 font-bold bg-gray-100 px-2 py-0.5 rounded text-transform uppercase shrink-0"
+                  className="text-[9px] md:text-xs text-gray-500 dark:text-gray-400 font-bold bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-transform uppercase shrink-0"
                   title={vehicle.vin}
                 >
                   {vehicle.vin || "..."}
@@ -240,12 +225,29 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
           />
         </div>
 
+        {/* Dark Mode Toggle */}
+        <button
+          onClick={toggleTheme}
+          title={theme === "dark" ? "Chế độ sáng" : "Chế độ tối"}
+          className="flex items-center justify-center w-9 h-9 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-600 shadow-sm hover:border-indigo-200 dark:hover:border-indigo-500 transition-all-custom tap-active cursor-pointer"
+        >
+          {theme === "dark" ? (
+            <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          )}
+        </button>
+
         {/* Last Updated & Refresh Group */}
         <button
           onClick={handleRefresh}
           disabled={vehicle.isRefreshing}
-          title="Refresh Data"
-          className="flex items-center gap-2 bg-white px-2 pr-3 h-9 rounded-full border border-gray-200 shadow-sm ml-1 hover:border-indigo-200 hover:text-indigo-600 transition-all-custom tap-active text-gray-500 cursor-pointer"
+          title="Làm mới dữ liệu"
+          className="flex items-center gap-2 bg-white dark:bg-gray-800 px-2 pr-3 h-9 rounded-full border border-gray-200 dark:border-gray-600 shadow-sm ml-1 hover:border-indigo-200 dark:hover:border-indigo-500 hover:text-indigo-600 transition-all-custom tap-active text-gray-500 dark:text-gray-400 cursor-pointer"
         >
           {/* Refresh Icon */}
           <div className="p-1.5 rounded-full">
@@ -267,7 +269,7 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
           {/* Time Display (Right) */}
           <div className="hidden md:flex flex-col items-start leading-none">
             <span className="text-[8px] opacity-70 uppercase font-bold tracking-wider mb-0.5">
-              Updated
+              Cập nhật
             </span>
             <span className="text-xs font-mono font-bold tabular-nums leading-none">
               {lastUpdatedTime}
@@ -275,11 +277,11 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
           </div>
 
           {/* MQTT Status */}
-          <div className="hidden md:flex flex-col items-start leading-none pl-2 pr-1 border-l border-gray-200">
+          <div className="hidden md:flex flex-col items-start leading-none pl-2 pr-1 border-l border-gray-200 dark:border-gray-600">
             {mqtt.status === "connected" ? (
               <>
                 <span className="text-[8px] text-green-600 uppercase font-bold tracking-wider mb-0.5">
-                  Live
+                  Trực tiếp
                 </span>
                 <span className="text-xs font-mono font-bold text-green-600 tabular-nums leading-none flex items-center gap-1">
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
@@ -289,7 +291,7 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
             ) : mqtt.status === "connecting" ? (
               <>
                 <span className="text-[8px] text-amber-500 uppercase font-bold tracking-wider mb-0.5">
-                  Connecting
+                  Đang kết nối
                 </span>
                 <span className="text-xs font-mono font-bold text-amber-500 tabular-nums leading-none">
                   MQTT...
@@ -298,22 +300,22 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
             ) : (
               <>
                 <span className="text-[8px] text-red-400 uppercase font-bold tracking-wider mb-0.5">
-                  Offline
+                  Ngoại tuyến
                 </span>
                 <span className="text-xs font-mono font-bold text-red-400 tabular-nums leading-none">
-                  Disconnected
+                  Mất kết nối
                 </span>
               </>
             )}
           </div>
         </button>
 
-        {/* Tools Dropdown (Charging History) */}
+        {/* Tools Dropdown */}
         <div className="relative hidden md:block">
           <button
             onClick={() => setToolsOpen(!toolsOpen)}
-            title="Tools"
-            className="flex items-center gap-2 px-3 h-9 bg-white text-gray-600 hover:text-indigo-600 hover:border-indigo-200 border border-gray-200 rounded-full transition-all-custom shadow-sm tap-active cursor-pointer"
+            title="Công cụ"
+            className="flex items-center gap-2 px-3 h-9 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-indigo-600 hover:border-indigo-200 dark:hover:border-indigo-500 border border-gray-200 dark:border-gray-600 rounded-full transition-all-custom shadow-sm tap-active cursor-pointer"
           >
             <svg
               className="w-4 h-4"
@@ -328,7 +330,7 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                 d="M4 6h16M4 12h16M4 18h16"
               />
             </svg>
-            <span className="text-xs font-bold">Tools</span>
+            <span className="text-xs font-bold">Công cụ</span>
             <svg
               className={`w-3 h-3 transition-transform ${toolsOpen ? "rotate-180" : ""}`}
               fill="none"
@@ -350,17 +352,17 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                 className="fixed inset-0 z-40"
                 onClick={() => setToolsOpen(false)}
               />
-              <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 dark:border-gray-700 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right overflow-hidden">
                 <button
                   onClick={() => {
                     setToolsOpen(false);
                     onOpenTelemetry();
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-indigo-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
                     <svg
-                      className="w-4 h-4 text-indigo-600"
+                      className="w-4 h-4 text-indigo-600 dark:text-indigo-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -374,25 +376,25 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900">Deep Scan</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">Quét sâu</p>
                     <p className="text-[10px] text-gray-400">
-                      Full telemetry data
+                      Dữ liệu telemetry đầy đủ
                     </p>
                   </div>
                 </button>
 
-                <div className="h-px bg-gray-50 mx-3"></div>
+                <div className="h-px bg-gray-50 dark:bg-gray-700 mx-3"></div>
 
                 <button
                   onClick={() => {
                     setToolsOpen(false);
                     onOpenCharging();
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-green-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-green-100 dark:bg-green-900/50 flex items-center justify-center shrink-0">
                     <svg
-                      className="w-4 h-4 text-green-600"
+                      className="w-4 h-4 text-green-600 dark:text-green-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -406,11 +408,11 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900">
-                      Charging History
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">
+                      Lịch sử sạc
                     </p>
                     <p className="text-[10px] text-gray-400">
-                      All charging sessions
+                      Tất cả phiên sạc
                     </p>
                   </div>
                 </button>
@@ -419,12 +421,12 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
           )}
         </div>
 
-        <div className="h-6 w-px bg-gray-200 mx-1"></div>
+        <div className="h-6 w-px bg-gray-200 dark:bg-gray-600 mx-1"></div>
 
         {/* User Profile / Logout */}
         <div className="flex items-center gap-3 pl-1">
           <div className="text-right hidden md:block">
-            <p className="text-sm font-bold text-gray-900 leading-none">
+            <p className="text-sm font-bold text-gray-900 dark:text-white leading-none">
               {vehicle.user_name}
             </p>
             <p className="text-xs text-gray-400 mt-0.5 font-medium tracking-wide">
@@ -451,35 +453,33 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                     : localAvatar(vehicle.user_name)
                 }
                 alt="User"
-                className="h-10 w-10 rounded-full border-2 border-white shadow-sm group-hover:ring-2 group-hover:ring-offset-2 group-hover:ring-blue-500 transition-all"
+                className="h-10 w-10 rounded-full border-2 border-white dark:border-gray-700 shadow-sm group-hover:ring-2 group-hover:ring-offset-2 group-hover:ring-blue-500 transition-all"
               />
             </button>
 
             {menuOpen && (
               <>
-                {/* Backdrop to close */}
                 <div
                   className="fixed inset-0 z-40"
                   onClick={() => setMenuOpen(false)}
                 ></div>
 
-                {/* Dropdown Menu */}
-                <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-gray-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 dark:border-gray-700 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right overflow-hidden">
                   {/* User Section */}
-                  <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/30">
+                  <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-900/30">
                     <p className="text-[10px] font-extrabold text-blue-600 uppercase tracking-widest mb-1">
-                      Current User
+                      Người dùng
                     </p>
                     <div className="flex items-center gap-3">
                       <img
                         src={
                           vehicle.user_avatar || localAvatar(vehicle.user_name)
                         }
-                        className="w-10 h-10 rounded-full border border-white shadow-sm"
+                        className="w-10 h-10 rounded-full border border-white dark:border-gray-600 shadow-sm"
                         alt=""
                       />
                       <div className="min-w-0">
-                        <p className="text-sm font-black text-gray-900 truncate">
+                        <p className="text-sm font-black text-gray-900 dark:text-white truncate">
                           {vehicle.user_name}
                         </p>
                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">
@@ -495,7 +495,7 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                   <div className="py-2">
                     <div className="px-4 py-1 mb-1">
                       <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
-                        Your Vehicles
+                        Xe của bạn
                       </p>
                     </div>
 
@@ -507,7 +507,7 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                           v.customizedVehicleName ||
                           v.marketingName ||
                           v.vehicleName ||
-                          "VinFast Vehicle";
+                          "Xe VinFast";
 
                         const img = v.vehicleImage || cached.vehicleImage;
 
@@ -518,9 +518,9 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                               if (!isSelected) switchVehicle(v.vinCode);
                               setMenuOpen(false);
                             }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all hover:bg-blue-50/50 group ${isSelected ? "bg-blue-50/80" : ""}`}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all hover:bg-blue-50/50 dark:hover:bg-blue-900/30 group ${isSelected ? "bg-blue-50/80 dark:bg-blue-900/20" : ""}`}
                           >
-                            <div className="relative h-12 w-16 bg-gray-50 rounded-lg overflow-hidden border border-gray-100 p-1 flex items-center justify-center shrink-0">
+                            <div className="relative h-12 w-16 bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-600 p-1 flex items-center justify-center shrink-0">
                               <img
                                 src={img || "/logo.png"}
                                 className="w-full h-full object-contain drop-shadow-sm group-hover:scale-110 transition-transform"
@@ -529,7 +529,7 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                             </div>
                             <div className="min-w-0 flex-1">
                               <p
-                                className={`text-sm font-extrabold truncate ${isSelected ? "text-blue-700" : "text-gray-900"}`}
+                                className={`text-sm font-extrabold truncate ${isSelected ? "text-blue-700 dark:text-blue-400" : "text-gray-900 dark:text-white"}`}
                               >
                                 {name}
                               </p>
@@ -538,7 +538,7 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                               </p>
                             </div>
                             {isSelected && (
-                              <div className="h-5 w-5 rounded-full bg-blue-600 flex items-center justify-center shrink-0 shadow-sm border-2 border-white">
+                              <div className="h-5 w-5 rounded-full bg-blue-600 flex items-center justify-center shrink-0 shadow-sm border-2 border-white dark:border-gray-800">
                                 <svg
                                   className="w-3 h-3 text-white"
                                   fill="none"
@@ -560,14 +560,14 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                     </div>
                   </div>
 
-                  <div className="h-px bg-gray-50 mx-2 my-1"></div>
+                  <div className="h-px bg-gray-50 dark:bg-gray-700 mx-2 my-1"></div>
 
                   <button
                     onClick={() => {
                       setShowAbout(true);
                       setMenuOpen(false);
                     }}
-                    className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                    className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors"
                   >
                     <svg
                       className="w-4 h-4 text-gray-400"
@@ -582,12 +582,12 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    About This App
+                    Giới thiệu
                   </button>
 
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                    className="w-full text-left px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center gap-2 transition-colors"
                   >
                     <svg
                       className="w-4 h-4 text-red-300"
@@ -602,7 +602,7 @@ export default function VehicleHeader({ onOpenCharging, onOpenTelemetry }) {
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                       />
                     </svg>
-                    Sign Out
+                    Đăng xuất
                   </button>
                 </div>
               </>
