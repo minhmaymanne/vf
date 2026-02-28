@@ -3,6 +3,7 @@ import { useStore } from "@nanostores/react";
 import { mqttStore } from "../stores/mqttStore";
 import { chargingHistoryStore } from "../stores/chargingHistoryStore";
 import { vehicleStore, getLiveMqttSnapshotForVin } from "../stores/vehicleStore";
+import { getMqttClient } from "../services/mqttClient";
 
 /**
  * Diagnostic panel — shows MQTT status, charging data status, active API test
@@ -375,6 +376,7 @@ function Row({ label, value, ok }) {
 function MqttKeysSection({ vin }) {
   const [snapshot, setSnapshot] = useState(null);
   const [showAll, setShowAll] = useState(false);
+  const [bmsRequest, setBmsRequest] = useState(null);
 
   const refresh = useCallback(() => {
     if (!vin) return;
@@ -383,6 +385,21 @@ function MqttKeysSection({ vin }) {
   }, [vin]);
 
   useEffect(() => { refresh(); }, [refresh]);
+
+  const requestBms = useCallback(async () => {
+    setBmsRequest("requesting...");
+    try {
+      const client = getMqttClient();
+      const results = await client.requestBmsData(vin);
+      const summary = results.map(r => `${r.topic.split("/").pop()}: ${r.success ? "OK" : r.error}`).join(", ");
+      setBmsRequest(summary);
+      // Refresh snapshot after 3s to see if BMS data arrived
+      setTimeout(refresh, 3000);
+      setTimeout(refresh, 8000);
+    } catch (e) {
+      setBmsRequest(`Error: ${e.message}`);
+    }
+  }, [vin, refresh]);
 
   if (!snapshot || snapshot.length === 0) {
     return (
@@ -418,7 +435,11 @@ function MqttKeysSection({ vin }) {
           {k.key}: {String(k.raw?.value ?? "").substring(0, 40)}
         </div>
       ))}
-      <div className="flex gap-2 mt-1">
+      {bmsRequest && (
+        <div className="text-[8px] text-yellow-300/80 mt-1 break-all">BMS: {bmsRequest}</div>
+      )}
+      <div className="flex gap-2 mt-1 flex-wrap">
+        <button onClick={requestBms} className="text-orange-400 hover:text-orange-300 text-[9px] font-bold">Request BMS</button>
         <button onClick={() => setShowAll(!showAll)} className="text-blue-400 text-[9px]">{showAll ? "Hide" : `Show all ${snapshot.length}`}</button>
         <button onClick={refresh} className="text-blue-400 text-[9px]">Refresh</button>
       </div>
