@@ -39,6 +39,9 @@ export default function DashboardApp({ vin: initialVin }) {
           This prevents the double data-fetch that caused the loading flash. */}
       <DashboardController vin={initialVin} />
 
+      {/* DebugPanel always visible — even during loading/auth phases */}
+      <DebugPanel />
+
       {!isInitialized || !vin ? (
         <AuthGate />
       ) : (
@@ -134,7 +137,6 @@ export default function DashboardApp({ vin: initialVin }) {
             )}
           </Suspense>
 
-          <DebugPanel />
         </div>
       )}
     </>
