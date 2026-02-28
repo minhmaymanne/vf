@@ -30,10 +30,10 @@ export function EnvironmentCard() {
   const mqtt = useStore(mqttStore);
   const isWaiting = mqtt.status === "connected" || mqtt.status === "connecting";
   return (
-    <div className="rounded-3xl bg-white p-4 md:p-3.5 shadow-sm border border-gray-100 flex flex-col h-full">
+    <div className="rounded-3xl bg-white dark:bg-gray-800 p-4 md:p-3.5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full">
       <div className="flex flex-col mb-2 md:mb-1 gap-1">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <svg
               className="w-6 h-6 text-blue-600"
               fill="none"
@@ -47,7 +47,7 @@ export function EnvironmentCard() {
                 d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
               />
             </svg>
-            Environment
+            Môi trường
           </h3>
         </div>
 
@@ -78,9 +78,9 @@ export function EnvironmentCard() {
             {v.weather_address || v.location_address ? (
               v.weather_address || v.location_address
             ) : v.isEnriching ? (
-              <span className="animate-pulse">Loading location...</span>
+              <span className="animate-pulse">Đang tải vị trí...</span>
             ) : (
-              "Outside"
+              "Ngoài trời"
             )}
           </span>
         </div>
@@ -88,7 +88,7 @@ export function EnvironmentCard() {
 
       <div className="space-y-1">
         <WeatherRow
-          label="Outside"
+          label="Ngoài trời"
           value={
             v.outside_temp !== undefined && v.outside_temp !== null ? (
               `${v.outside_temp}°C`
@@ -98,7 +98,7 @@ export function EnvironmentCard() {
               "N/A"
             )
           }
-          subValue="Live"
+          subValue="Trực tiếp"
           icon={
             <svg
               className="w-6 h-6"
@@ -117,7 +117,7 @@ export function EnvironmentCard() {
         />
 
         <WeatherRow
-          label="Cabin"
+          label="Cabin xe"
           value={
             v.inside_temp !== undefined && v.inside_temp !== null
               ? `${v.inside_temp}°C`
@@ -125,7 +125,7 @@ export function EnvironmentCard() {
                 ? <span className="animate-pulse text-gray-300">--°C</span>
                 : "N/A"
           }
-          subValue={`Fan: ${v.fan_speed !== undefined && v.fan_speed !== null ? v.fan_speed : isWaiting ? "..." : "N/A"}`}
+          subValue={`Quạt: ${v.fan_speed !== undefined && v.fan_speed !== null ? v.fan_speed : isWaiting ? "..." : "N/A"}`}
           icon={
             <svg
               className="w-6 h-6"
@@ -146,7 +146,7 @@ export function EnvironmentCard() {
 
       <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-gray-100">
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl border border-gray-100">
-          <span className="text-xs font-bold text-gray-500">Pet Mode</span>
+          <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Chế độ thú cưng</span>
           <span
             className={`text-[10px] font-bold px-2 py-1 rounded-lg ${Number(v.pet_mode) === 1 ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "bg-gray-200 text-gray-500"}`}
           >
@@ -154,7 +154,7 @@ export function EnvironmentCard() {
           </span>
         </div>
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl border border-gray-100">
-          <span className="text-xs font-bold text-gray-500">Camp Mode</span>
+          <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Chế độ cắm trại</span>
           <span
             className={`text-[10px] font-bold px-2 py-1 rounded-lg ${Number(v.camp_mode) === 1 ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "bg-gray-200 text-gray-500"}`}
           >
@@ -176,10 +176,10 @@ export function MapCard() {
   const hasValidCoords = v.latitude && v.longitude && !isDefaultLoc;
 
   return (
-    <div className="flex-1 rounded-3xl bg-white p-5 md:p-4 shadow-sm border border-gray-100 flex flex-col min-h-0 md:min-h-[300px] md:max-h-[600px] h-full">
+    <div className="flex-1 rounded-3xl bg-white dark:bg-gray-800 p-5 md:p-4 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col min-h-0 md:min-h-[300px] md:max-h-[600px] h-full">
       <div className="flex flex-col mb-4 gap-1 px-1">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis">
             <svg
               className="w-6 h-6 text-blue-600 flex-shrink-0"
               fill="none"
@@ -199,7 +199,7 @@ export function MapCard() {
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            Vehicle Location
+            Vị trí xe
           </h3>
         </div>
 
@@ -229,10 +229,10 @@ export function MapCard() {
               target="_blank"
               rel="noopener noreferrer"
               className="text-[10px] font-bold text-gray-500 uppercase tracking-wide truncate flex items-center gap-1 hover:text-blue-600 transition-all group"
-              title={v.location_address || "Open in Google Maps"}
+              title={v.location_address || "Mở trong Google Maps"}
             >
               <span className="truncate">
-                {v.location_address || "Locating..."}
+                {v.location_address || "Đang định vị..."}
               </span>
               <svg
                 className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
@@ -250,11 +250,11 @@ export function MapCard() {
             </a>
           ) : v.isEnriching || isWaiting ? (
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide animate-pulse">
-              Locating...
+              Đang định vị...
             </span>
           ) : (
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
-              Offline
+              Ngoại tuyến
             </span>
           )}
         </div>
@@ -278,7 +278,7 @@ export function MapCard() {
           <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 bg-gray-50">
             <div className="w-12 h-12 rounded-full border-4 border-gray-200 border-t-blue-500 animate-spin mb-3"></div>
             <span className="text-xs font-bold uppercase tracking-wider">
-              Locating...
+              Đang định vị...
             </span>
           </div>
         ) : (
@@ -288,7 +288,7 @@ export function MapCard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <span className="text-xs font-bold uppercase tracking-wider text-gray-300">
-              Offline
+              Ngoại tuyến
             </span>
           </div>
         )}

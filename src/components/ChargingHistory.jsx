@@ -61,7 +61,7 @@ function formatTime(epochMs) {
 
 function formatCurrency(amount) {
   const n = safeNumber(amount);
-  if (!n) return "Free";
+  if (!n) return "Miễn phí";
   try {
     return new Intl.NumberFormat("vi-VN").format(n) + "đ";
   } catch {
@@ -161,9 +161,9 @@ function SessionCard({ session, maxEnergy, index }) {
 
   return (
     <div
-      className={`bg-white rounded-2xl border p-4 shadow-sm hover:shadow-md transition-all duration-300 ${
+      className={`bg-white dark:bg-gray-800 rounded-2xl border p-4 shadow-sm hover:shadow-md transition-all duration-300 ${
         index < 24 ? "animate-in fade-in slide-in-from-bottom-2" : ""
-      } ${hasIdleFee ? "border-orange-200" : "border-gray-100"}`}
+      } ${hasIdleFee ? "border-orange-200 dark:border-orange-800" : "border-gray-100 dark:border-gray-700"}`}
       style={
         index < 24
           ? { animationDelay: `${Math.min(index * 30, 300)}ms` }
@@ -172,15 +172,15 @@ function SessionCard({ session, maxEnergy, index }) {
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
-          <h4 className="text-sm font-bold text-gray-900 truncate">
-            {session.chargingStationName || "Unknown Station"}
+          <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+            {session.chargingStationName || "Trạm không rõ"}
           </h4>
           <p className="text-[10px] text-gray-400 truncate mt-0.5">
             {session.district || ""}
           </p>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-xs font-bold text-gray-700">
+          <p className="text-xs font-bold text-gray-700 dark:text-gray-300">
             {formatDate(
               session.startChargeTime ||
                 session.pluggedTime ||
@@ -211,7 +211,7 @@ function SessionCard({ session, maxEnergy, index }) {
               d="M13 10V3L4 14h7v7l9-11h-7z"
             />
           </svg>
-          <span className="text-sm font-bold text-gray-800">
+          <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
             {formatEnergy(kWh, 1)} kWh
           </span>
         </div>
@@ -237,11 +237,11 @@ function SessionCard({ session, maxEnergy, index }) {
 
         <div className="flex items-center gap-1.5">
           {isFree && hasPromo && !hasIdleFee ? (
-            <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-              Free
+            <span className="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
+              Miễn phí
             </span>
           ) : (
-            <span className="text-xs font-bold text-gray-700">
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
               {formatCurrency(finalAmount)}
             </span>
           )}
@@ -259,7 +259,7 @@ function SessionCard({ session, maxEnergy, index }) {
           <p className="text-[10px] text-gray-400">
             {formatCurrency(chargeFee.price)}/kWh
             {hasPromo && chargingCost <= 0 && (
-              <span className="ml-1 text-green-500 font-bold">Free</span>
+              <span className="ml-1 text-green-500 font-bold">Miễn phí</span>
             )}
           </p>
         )}
@@ -282,7 +282,7 @@ function SessionCard({ session, maxEnergy, index }) {
             />
           </svg>
           <span className="text-[10px] font-bold text-orange-700">
-            Idle fee: {formatCurrency(idleFee.cost)}
+            Phí chờ: {formatCurrency(idleFee.cost)}
           </span>
           {idleFee.minutes > 0 && (
             <span className="text-[10px] text-orange-500">
@@ -322,7 +322,7 @@ function FilterBar({ store }) {
             : "text-gray-400 hover:text-gray-600"
         }`}
       >
-        All
+        Tất cả
       </button>
 
       {availableYears.map((year) => (
@@ -375,7 +375,7 @@ function filterLabel(store) {
   if (store.filterMode === "month")
     return `T${store.selectedMonth}/${store.selectedYear}`;
   if (store.filterMode === "year") return `${store.selectedYear}`;
-  return "all time";
+  return "tất cả";
 }
 
 // --- Animated stat value ---
@@ -511,17 +511,17 @@ export default function ChargingHistory({ inline = false }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-3 shrink-0">
         <div>
-          <h3 className="text-lg font-extrabold text-gray-900">
-            Charging History
+          <h3 className="text-lg font-extrabold text-gray-900 dark:text-white">
+            Lịch sử sạc
           </h3>
           <p className="text-xs text-gray-400 mt-0.5 transition-all duration-300">
             {store.isLoading && store.totalLoaded === 0
-              ? "Loading..."
+              ? "Đang tải..."
               : store.isLoadingMore
-                ? `Loading more... (${store.totalLoaded}/${store.totalRecords})`
+                ? `Đang tải thêm... (${store.totalLoaded}/${store.totalRecords})`
                 : store.totalLoaded > 0
-                  ? `${store.sessions.length} of ${store.totalLoaded} sessions · ${filterLabel(store)}`
-                  : "No data"}
+                  ? `${store.sessions.length} / ${store.totalLoaded} phiên · ${filterLabel(store)}`
+                  : "Không có dữ liệu"}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -533,7 +533,7 @@ export default function ChargingHistory({ inline = false }) {
             disabled={isAnyLoading}
             className="text-xs text-blue-600 hover:text-blue-800 font-bold disabled:opacity-50 transition-opacity"
           >
-            {store.isLoading ? "Loading..." : "Refresh"}
+            {store.isLoading ? "Đang tải..." : "Làm mới"}
           </button>
         </div>
       </div>
@@ -547,28 +547,28 @@ export default function ChargingHistory({ inline = false }) {
           className={`grid gap-2 mb-4 shrink-0 animate-in fade-in duration-500 ${totalIdleFee > 0 ? "grid-cols-3" : "grid-cols-2"}`}
         >
           <AnimatedStat
-            label="Energy"
+            label="Năng lượng"
             value={`${formatEnergy(totalKWh, 0)} kWh`}
             colorClass="text-green-800"
             bgClass="bg-green-50"
             isLoading={store.isLoading}
           />
           <AnimatedStat
-            label="Plugged"
+            label="Cắm sạc"
             value={formatTotalTime(totalPluggedMs)}
             colorClass="text-purple-800"
             bgClass="bg-purple-50"
             isLoading={store.isLoading}
           />
           <AnimatedStat
-            label="Cost"
+            label="Chi phí"
             value={formatCurrency(totalCost)}
             colorClass="text-blue-800"
             bgClass="bg-blue-50"
             isLoading={store.isLoading}
           />
           <AnimatedStat
-            label="Saved"
+            label="Tiết kiệm"
             value={formatCurrency(totalSaved)}
             colorClass="text-amber-800"
             bgClass="bg-amber-50"
@@ -576,7 +576,7 @@ export default function ChargingHistory({ inline = false }) {
           />
           {totalIdleFee > 0 && (
             <AnimatedStat
-              label="Idle Fee"
+              label="Phí chờ"
               value={formatCurrency(totalIdleFee)}
               colorClass="text-orange-800"
               bgClass="bg-orange-50"
@@ -585,7 +585,7 @@ export default function ChargingHistory({ inline = false }) {
           )}
           {totalIdleFee > 0 && (
             <AnimatedStat
-              label="Idle Time"
+              label="Thời gian chờ"
               value={`${totalIdleMins}m`}
               colorClass="text-red-800"
               bgClass="bg-red-50"
@@ -630,7 +630,7 @@ export default function ChargingHistory({ inline = false }) {
           >
             <div className="w-5 h-5 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
             <span className="ml-2 text-xs text-gray-400">
-              {safeSessions.length - renderedSessions.length} more
+              còn {safeSessions.length - renderedSessions.length}
             </span>
           </div>
         )}
@@ -653,8 +653,8 @@ export default function ChargingHistory({ inline = false }) {
             </svg>
             <p className="text-sm font-bold">
               {store.filterMode !== "all"
-                ? `No sessions for ${filterLabel(store)}`
-                : "No charging sessions"}
+                ? `Không có phiên sạc cho ${filterLabel(store)}`
+                : "Không có phiên sạc"}
             </p>
           </div>
         )}

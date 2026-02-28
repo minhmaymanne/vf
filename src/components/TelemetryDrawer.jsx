@@ -284,7 +284,7 @@ export default function TelemetryDrawer({ isOpen, onClose }) {
     // Add OTHERS group for unmatched items
     groups["others"] = {
       id: "others",
-      label: "Other Parameters",
+      label: "Thông số khác",
       icon: "ellipsis",
       priority: 800,
       items: [],
@@ -377,7 +377,7 @@ export default function TelemetryDrawer({ isOpen, onClose }) {
       if (itemsWithoutData.length > 0) {
         groups["no_data"] = {
           id: "no_data",
-          label: "No Data Available",
+          label: "Không có dữ liệu",
           icon: "ellipsis",
           description: "Aliases không có dữ liệu trả về",
           priority: 1000,
@@ -403,7 +403,7 @@ export default function TelemetryDrawer({ isOpen, onClose }) {
         if (!groups["no_data"]) {
           groups["no_data"] = {
             id: "no_data",
-            label: "No Data Available",
+            label: "Không có dữ liệu",
             icon: "ellipsis",
             description: "Aliases không có dữ liệu trả về",
             priority: 1000,
@@ -554,7 +554,7 @@ export default function TelemetryDrawer({ isOpen, onClose }) {
                   d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
                 />
               </svg>
-              Deep Scan
+              Quét sâu
             </h2>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="text-xs font-mono text-gray-500 uppercase tracking-tight bg-white/70 px-1.5 py-0.5 rounded border border-gray-200">
@@ -567,12 +567,12 @@ export default function TelemetryDrawer({ isOpen, onClose }) {
               )}
               {groupedData.length > 0 && (
                 <span className="text-[10px] text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded font-bold">
-                  {groupedData.length} groups
+                  {groupedData.length} nhóm
                 </span>
               )}
               {vehicle.isScanning && filteredData.length > 0 && (
                 <span className="text-[10px] text-green-600 bg-green-100 px-1.5 py-0.5 rounded font-bold animate-pulse">
-                  Updating...
+                  Đang cập nhật...
                 </span>
               )}
             </div>
@@ -789,7 +789,7 @@ export default function TelemetryDrawer({ isOpen, onClose }) {
                                   {fieldConfig?.label ||
                                     item.name ||
                                     item.alias ||
-                                    "Unknown Parameter"}
+                                    "Thông số không rõ"}
                                 </p>
                                 {displayUnit && (
                                   <span className="shrink-0 text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded ml-2">

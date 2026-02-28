@@ -33,12 +33,12 @@ export const DEFAULT_LOCATION = {
 };
 
 export const VEHICLE_STATUS_LABELS = {
-  TIRES: "Tires",
-  DOORS: "Doors & Locks",
-  WINDOWS: "Windows",
-  HANDBRAKE: "Handbrake",
-  SAFETY: "Safety Check",
-  SERVICE: "Service",
+  TIRES: "Lốp xe",
+  DOORS: "Cửa & Khóa",
+  WINDOWS: "Cửa kính",
+  HANDBRAKE: "Phanh tay",
+  SAFETY: "An toàn",
+  SERVICE: "Bảo dưỡng",
   FIRMWARE: "Firmware",
   TBOX: "T-Box",
 };

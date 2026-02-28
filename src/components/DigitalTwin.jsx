@@ -162,47 +162,47 @@ export default function DigitalTwin() {
 
   // Door warnings with detail
   const openDoors = [];
-  if (data.door_fl) openDoors.push("Front Left");
-  if (data.door_fr) openDoors.push("Front Right");
-  if (data.door_rl) openDoors.push("Rear Left");
-  if (data.door_rr) openDoors.push("Rear Right");
+  if (data.door_fl) openDoors.push("Trước trái");
+  if (data.door_fr) openDoors.push("Trước phải");
+  if (data.door_rl) openDoors.push("Sau trái");
+  if (data.door_rr) openDoors.push("Sau phải");
   if (openDoors.length > 0) {
     warnings.push({
-      label: "Door Open",
+      label: "Cửa mở",
       detail: openDoors.join(", "),
     });
   }
 
   if (data.trunk_status) {
     warnings.push({
-      label: "Trunk Open",
-      detail: "Rear trunk is open",
+      label: "Cốp mở",
+      detail: "Cốp sau đang mở",
     });
   }
 
   if (data.hood_status) {
     warnings.push({
-      label: "Hood Open",
-      detail: "Front hood is open",
+      label: "Nắp ca-pô mở",
+      detail: "Nắp ca-pô đang mở",
     });
   }
 
   // Central Lock: false means UNLOCKED (Warning)
   if (data.central_lock_status === false || data.is_locked === false) {
     warnings.push({
-      label: "Unlocked",
-      detail: "Vehicle is not locked",
+      label: "Chưa khóa",
+      detail: "Xe chưa được khóa",
     });
   }
 
   return (
-    <div className="relative w-full h-full min-h-[45vh] md:min-h-[300px] bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col flex-1">
+    <div className="relative w-full h-full min-h-[45vh] md:min-h-[300px] bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col flex-1">
       <div className="relative flex-1 w-full flex items-center justify-center p-2 md:p-4">
         {/* Header Section: Nickname, ODO, Details, Warranty */}
         <div className="absolute top-4 md:top-6 left-5 md:left-8 right-5 md:right-8 z-10 flex flex-col">
           {/* Row 1: Icon + Nickname (Left) | ODO (Right) */}
           <div className="flex items-center justify-between w-full">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 min-w-0">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 min-w-0">
               <svg
                 className="w-6 h-6 text-blue-600 flex-shrink-0"
                 viewBox="0 0 512 512"
@@ -227,14 +227,14 @@ export default function DigitalTwin() {
             {/* Odometer (Right) */}
             <div className="flex flex-col items-end leading-none shrink-0">
               <span className="text-[8px] md:text-[9px] font-bold text-blue-600 uppercase tracking-tighter mb-0.5">
-                Odometer
+                Số km
               </span>
               <div className="flex items-baseline gap-1 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
                 {data.vin &&
                 data.odometer !== null &&
                 data.odometer !== undefined ? (
                   <>
-                    <span className="text-base md:text-xl font-mono font-extrabold text-gray-700 tabular-nums">
+                    <span className="text-base md:text-xl font-mono font-extrabold text-gray-700 dark:text-gray-200 tabular-nums">
                       {odo.integer}
                       <span className="text-gray-400 text-sm">
                         {odo.decimal}
@@ -288,9 +288,9 @@ export default function DigitalTwin() {
           {/* Row 3: Warranty Section (Existing, with reduced mt) */}
           <div className="mt-1.5 pt-1.5 border-t border-gray-100 flex flex-col gap-0.5 animate-in fade-in slide-in-from-left-4 duration-700 delay-500">
             <p className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">
-              Warranty Expires
+              Hết hạn bảo hành
             </p>
-            <div className="flex items-center gap-2 text-xs font-bold text-gray-600 font-mono">
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-300 font-mono">
               <span
                 className={!data.warrantyExpirationDate ? "text-gray-300" : ""}
               >
@@ -449,37 +449,37 @@ export default function DigitalTwin() {
         <TireCard
           pressure={data.tire_pressure_fr}
           temp={data.tire_temp_fr}
-          label="FRONT RIGHT"
+          label="TRƯỚC PHẢI"
           positionClass="top-[25%] left-[1%] md:left-[8%]"
         />
 
         <TireCard
           pressure={data.tire_pressure_rr}
           temp={data.tire_temp_rr}
-          label="REAR RIGHT"
+          label="SAU PHẢI"
           positionClass="top-[25%] right-[1%] md:right-[8%]"
         />
 
         <TireCard
           pressure={data.tire_pressure_fl}
           temp={data.tire_temp_fl}
-          label="FRONT LEFT"
+          label="TRƯỚC TRÁI"
           positionClass="bottom-[8%] md:bottom-[2%] left-[2%] md:left-[8%]"
         />
 
         <TireCard
           pressure={data.tire_pressure_rl}
           temp={data.tire_temp_rl}
-          label="REAR LEFT"
+          label="SAU TRÁI"
           positionClass="bottom-[8%] md:bottom-[2%] right-[2%] md:right-[8%]"
         />
       </div>
 
       {/* Bottom Controls Area */}
-      <div className="h-auto w-full bg-white flex flex-col items-center justify-end pb-4 space-y-3 z-30">
+      <div className="h-auto w-full bg-white dark:bg-gray-800 flex flex-col items-center justify-end pb-4 space-y-3 z-30">
         {/* Gear Selector + Speed */}
         <div className="flex items-center gap-3">
-          <div className="bg-gray-50/80 backdrop-blur-md px-10 py-3.5 rounded-full flex items-center gap-8 border border-gray-200 shadow-[0_4px_20px_rgb(0,0,0,0.05)] relative z-30">
+          <div className="bg-gray-50/80 dark:bg-gray-700/80 backdrop-blur-md px-10 py-3.5 rounded-full flex items-center gap-8 border border-gray-200 dark:border-gray-600 shadow-[0_4px_20px_rgb(0,0,0,0.05)] relative z-30">
             {[GEARS.PARK, GEARS.REVERSE, GEARS.NEUTRAL, GEARS.DRIVE].map(
               (gear) => {
                 // Normalize data gear (handle numbers or strings)
@@ -546,7 +546,7 @@ export default function DigitalTwin() {
             </div>
           ) : (
             /* Show nothing or minimal status when safe */
-            <span className="text-[10px] font-bold text-green-600 flex items-center gap-1.5 animate-pulse-slow bg-green-50 px-3 py-1 rounded-full border border-green-100 animate-glow">
+            <span className="text-[10px] font-bold text-green-600 flex items-center gap-1.5 animate-pulse-slow bg-green-50 dark:bg-green-900/30 px-3 py-1 rounded-full border border-green-100 dark:border-green-800 animate-glow">
               <svg
                 className="w-3 h-3"
                 fill="none"
@@ -560,7 +560,7 @@ export default function DigitalTwin() {
                   d="M5 13l4 4L19 7"
                 />
               </svg>
-              Ready
+              Sẵn sàng
             </span>
           )}
         </div>

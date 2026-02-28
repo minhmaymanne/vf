@@ -12,11 +12,11 @@ export default function ChargingHistoryDrawer({ isOpen, onClose }) {
       />
 
       {/* Drawer */}
-      <div className="relative w-full max-w-lg bg-white shadow-2xl flex flex-col h-full animate-slide-in-right">
+      <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 shadow-2xl flex flex-col h-full animate-slide-in-right">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <svg
                 className="w-6 h-6 text-green-600"
                 fill="none"
@@ -30,10 +30,10 @@ export default function ChargingHistoryDrawer({ isOpen, onClose }) {
                   d="M13 10V3L4 14h7v7l9-11h-7z"
                 />
               </svg>
-              Charging History
+              Lịch sử sạc
             </h2>
             <p className="text-xs text-gray-500 mt-1">
-              All charging sessions from your VinFast account
+              Tất cả phiên sạc từ tài khoản VinFast của bạn
             </p>
           </div>
           <button

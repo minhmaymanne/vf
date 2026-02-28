@@ -10,7 +10,7 @@ export default function AboutModal({ isOpen, onClose }) {
       ></div>
 
       {/* Modal Content */}
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -34,30 +34,30 @@ export default function AboutModal({ isOpen, onClose }) {
         <div className="p-6 md:p-8">
           {/* Header */}
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-black text-gray-900 mb-1">
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-1">
               VinFast Dashboard
             </h2>
             <p className="text-sm font-bold text-gray-500 tracking-wider uppercase">
-              Open Source by{" "}
-              <span className="text-blue-600">VF9 Club Vietnam</span>
+              Mã nguồn mở bởi{" "}
+              <span className="text-blue-600">VF9 Club Việt Nam</span>
             </p>
           </div>
 
           {/* Mobile Content (Short, No Images) */}
           <div className="md:hidden space-y-4">
-            <p className="text-gray-700 text-sm leading-relaxed">
-              A community hobby project developed to provide deeper insights
-              into your vehicle&apos;s data. We visualize raw telemetry from
-              VinFast servers to show details often missing from the official
-              app.
+            <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+              Dự án cộng đồng được phát triển để cung cấp cái nhìn sâu hơn
+              về dữ liệu xe của bạn. Chúng tôi trực quan hóa dữ liệu telemetry
+              thô từ máy chủ VinFast để hiển thị chi tiết thường không có trên
+              ứng dụng chính thức.
             </p>
 
-            <div className="bg-gray-50 rounded-2xl p-4 space-y-2 border border-gray-100">
-              <h3 className="font-bold text-gray-900 text-sm">Main Goals</h3>
-              <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
-                <li>Visualize hidden data (SOH, ECU versions)</li>
-                <li>Clear, intuitive status monitoring</li>
-                <li>Community-drived & Non-commercial</li>
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 space-y-2 border border-gray-100 dark:border-gray-600">
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">Mục tiêu chính</h3>
+              <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1 list-disc pl-4">
+                <li>Hiển thị dữ liệu ẩn (SOH, phiên bản ECU)</li>
+                <li>Giám sát trạng thái rõ ràng, trực quan</li>
+                <li>Cộng đồng phát triển & Phi thương mại</li>
               </ul>
             </div>
 
@@ -74,8 +74,8 @@ export default function AboutModal({ isOpen, onClose }) {
                   GitHub
                 </a>
               </div>
-              &quot;A tool for enthusiasts, by enthusiasts.&quot; <br />
-              Not affiliated with VinFast Auto.
+              &quot;Công cụ của người đam mê, bởi người đam mê.&quot; <br />
+              Không liên kết với VinFast Auto.
             </div>
           </div>
 
@@ -84,47 +84,47 @@ export default function AboutModal({ isOpen, onClose }) {
             <div className="grid grid-cols-2 gap-6 items-start">
               <div className="space-y-4">
                 <div className="prose prose-blue prose-sm">
-                  <p className="text-gray-600 leading-snug">
-                    <strong>VinFast Dashboard</strong> is an open-source project
-                    initiated by members of <strong>VF9 Club Vietnam</strong>.
+                  <p className="text-gray-600 dark:text-gray-300 leading-snug">
+                    <strong>VinFast Dashboard</strong> là dự án mã nguồn mở
+                    được khởi xướng bởi thành viên của <strong>VF9 Club Việt Nam</strong>.
                   </p>
-                  <p className="text-gray-600 leading-snug">
-                    Our mission is to build a comprehensive tool that helps
-                    users visualize vehicle data more intuitively. By leveraging
-                    raw telemetry, we surface valuable insights—such as
+                  <p className="text-gray-600 dark:text-gray-300 leading-snug">
+                    Sứ mệnh của chúng tôi là xây dựng công cụ toàn diện giúp
+                    người dùng trực quan hóa dữ liệu xe một cách trực quan hơn.
+                    Bằng cách tận dụng dữ liệu telemetry thô, chúng tôi hiển thị
+                    các thông tin giá trị như
                     <span className="text-blue-600 font-medium">
                       {" "}
-                      Battery SOH
+                      SOH Pin
                     </span>{" "}
-                    and{" "}
+                    và{" "}
                     <span className="text-blue-600 font-medium">
-                      ECU Versions
+                      Phiên bản ECU
                     </span>
-                    —often not visible in the official app.
+                    — thường không hiển thị trên ứng dụng chính thức.
                   </p>
-                  <p className="text-gray-600 leading-snug">
-                    This is strictly a{" "}
-                    <strong>non-commercial, hobbyist initiative</strong> created
-                    purely out of passion for technology and the VinFast
-                    community.
+                  <p className="text-gray-600 dark:text-gray-300 leading-snug">
+                    Đây hoàn toàn là{" "}
+                    <strong>sáng kiến phi thương mại</strong> được
+                    tạo ra thuần túy từ đam mê công nghệ và cộng đồng VinFast.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
                     <h4 className="font-bold text-blue-800 mb-1 text-sm">
-                      Deeper Insights
+                      Thông tin sâu hơn
                     </h4>
                     <p className="text-xs text-blue-600">
-                      See what&apos;s under the hood with raw visualization.
+                      Xem chi tiết bên trong xe với trực quan hóa dữ liệu thô.
                     </p>
                   </div>
                   <div className="bg-green-50 p-3 rounded-lg border border-green-100">
                     <h4 className="font-bold text-green-800 mb-1 text-sm">
-                      Real-time Data
+                      Dữ liệu thời gian thực
                     </h4>
                     <p className="text-xs text-green-600">
-                      Live updates for battery, charging, and climate status.
+                      Cập nhật trực tiếp pin, sạc và trạng thái khí hậu.
                     </p>
                   </div>
                 </div>
@@ -139,7 +139,7 @@ export default function AboutModal({ isOpen, onClose }) {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
                     <span className="text-white font-bold text-xs">
-                      Visualizing Hidden Data
+                      Trực quan hóa dữ liệu ẩn
                     </span>
                   </div>
                 </div>
@@ -156,7 +156,7 @@ export default function AboutModal({ isOpen, onClose }) {
                   rel="noopener noreferrer"
                   className="hover:text-blue-600 flex items-center gap-1 font-medium transition-colors"
                 >
-                  View Source on GitHub
+                  Xem mã nguồn trên GitHub
                   <svg
                     className="w-3 h-3"
                     fill="none"
@@ -173,12 +173,12 @@ export default function AboutModal({ isOpen, onClose }) {
                 </a>
               </div>
               <p className="text-sm text-gray-500 font-medium">
-                Made with ❤️ in Vietnam
+                Được tạo với ❤️ tại Việt Nam
               </p>
               <p className="text-xs text-gray-400 mt-1 max-w-xl mx-auto leading-normal">
-                Disclaimer: This software is not affiliated with, endorsed by,
-                or connected to VinFast Auto or its subsidiaries. It is provided
-                &quot;as is&quot; for educational and personal use only.
+                Tuyên bố miễn trừ: Phần mềm này không liên kết, không được tài trợ
+                hoặc kết nối với VinFast Auto hay các công ty con. Phần mềm được cung cấp
+                &quot;nguyên trạng&quot; chỉ cho mục đích giáo dục và sử dụng cá nhân.
               </p>
             </div>
           </div>

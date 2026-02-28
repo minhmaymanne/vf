@@ -21,8 +21,8 @@ export default function SystemHealth() {
 
     if (!tire_pressure_fl && !tire_pressure_fr)
       return {
-        status: "No Data",
-        detail: "No tire pressure data available",
+        status: "Không có",
+        detail: "Không có dữ liệu áp suất lốp",
         color: "text-gray-400",
         bg: "bg-gray-100",
         iconColor: "text-gray-400",
@@ -40,14 +40,14 @@ export default function SystemHealth() {
 
     if (lowTires.length > 0)
       return {
-        status: "Low Pressure",
+        status: "Áp suất thấp",
         detail: detailText,
         color: "text-red-700",
         bg: "bg-red-50",
         iconColor: "text-red-500",
       };
     return {
-      status: "All OK",
+      status: "Bình thường",
       detail: detailText,
       color: "text-emerald-700",
       bg: "bg-emerald-50",
@@ -70,7 +70,7 @@ export default function SystemHealth() {
     ) {
       return {
         status: "--",
-        detail: "No door status data",
+        detail: "Không có dữ liệu cửa",
         color: "text-gray-400",
         bg: "bg-gray-100",
         iconColor: "text-gray-400",
@@ -78,24 +78,24 @@ export default function SystemHealth() {
     }
 
     const openDoors = [];
-    if (door_fl) openDoors.push("Driver");
-    if (door_fr) openDoors.push("Pass");
-    if (door_rl) openDoors.push("RL");
-    if (door_rr) openDoors.push("RR");
-    if (trunk_status) openDoors.push("Trunk");
-    if (hood_status) openDoors.push("Hood");
+    if (door_fl) openDoors.push("Lái xe");
+    if (door_fr) openDoors.push("Phụ");
+    if (door_rl) openDoors.push("ST");
+    if (door_rr) openDoors.push("SP");
+    if (trunk_status) openDoors.push("Cốp");
+    if (hood_status) openDoors.push("Ca-pô");
 
     if (openDoors.length > 0)
       return {
-        status: `${openDoors.length} Open`,
-        detail: `${openDoors.join(", ")} is open`,
+        status: `${openDoors.length} Mở`,
+        detail: `${openDoors.join(", ")} đang mở`,
         color: "text-amber-700",
         bg: "bg-amber-50",
         iconColor: "text-amber-500",
       };
     return {
-      status: "All Closed",
-      detail: "All doors, hood, and trunk are closed",
+      status: "Đã đóng",
+      detail: "Tất cả cửa, ca-pô và cốp đều đóng",
       color: "text-emerald-700",
       bg: "bg-emerald-50",
       iconColor: "text-emerald-500",
@@ -106,7 +106,7 @@ export default function SystemHealth() {
     if (data.thermal_warning === undefined || data.thermal_warning === null) {
       return {
         status: "--",
-        detail: "No safety data",
+        detail: "Không có dữ liệu an toàn",
         color: "text-gray-400",
         bg: "bg-gray-100",
         iconColor: "text-gray-400",
@@ -115,16 +115,16 @@ export default function SystemHealth() {
 
     if (Number(data.thermal_warning) === 1) {
       return {
-        status: "Warning",
-        detail: "Thermal Runaway Warning Active",
+        status: "Cảnh báo",
+        detail: "Cảnh báo quá nhiệt đang hoạt động",
         color: "text-red-700",
         bg: "bg-red-50",
         iconColor: "text-red-600",
       };
     }
     return {
-      status: "Normal",
-      detail: "System Normal (No Thermal Warning)",
+      status: "Bình thường",
+      detail: "Hệ thống bình thường (Không có cảnh báo nhiệt)",
       color: "text-emerald-700",
       bg: "bg-emerald-50",
       iconColor: "text-emerald-500",
@@ -135,7 +135,7 @@ export default function SystemHealth() {
     if (data.service_alert === undefined || data.service_alert === null) {
       return {
         status: "--",
-        detail: "No service data",
+        detail: "Không có dữ liệu bảo dưỡng",
         color: "text-gray-400",
         bg: "bg-gray-100",
         iconColor: "text-gray-400",
@@ -145,27 +145,27 @@ export default function SystemHealth() {
     // Try to parse structured service info
     let extraInfo = "";
     if (data.service_appointment_id) {
-      extraInfo = `Appointment ID: ${data.service_appointment_id}`;
+      extraInfo = `Mã lịch hẹn: ${data.service_appointment_id}`;
     } else if (data.warrantyExpirationDate) {
-      extraInfo = `Warranty until: ${new Date(data.warrantyExpirationDate).toLocaleDateString("vi-VN")}`;
+      extraInfo = `Bảo hành đến: ${new Date(data.warrantyExpirationDate).toLocaleDateString("vi-VN")}`;
     }
 
     // Server-provided Service Info (No Estimation)
     let mileageInfo = "";
     if (data.next_service_mileage) {
-      mileageInfo = `Next service at ${Number(data.next_service_mileage).toLocaleString()} km`;
+      mileageInfo = `Bảo dưỡng tiếp tại ${Number(data.next_service_mileage).toLocaleString()} km`;
     }
 
     let dateInfo = "";
     if (data.next_service_date) {
-      dateInfo = `Date: ${data.next_service_date}`;
+      dateInfo = `Ngày: ${data.next_service_date}`;
     }
 
     if (data.service_alert && data.service_alert != 0) {
       return {
-        status: "Due",
+        status: "Đến hạn",
         detail:
-          `Service is due. ${mileageInfo} ${dateInfo} ${extraInfo}`.trim(),
+          `Cần bảo dưỡng. ${mileageInfo} ${dateInfo} ${extraInfo}`.trim(),
         color: "text-blue-700",
         bg: "bg-blue-50",
         iconColor: "text-blue-500",
@@ -175,10 +175,10 @@ export default function SystemHealth() {
     const hasServiceData = mileageInfo || dateInfo || extraInfo;
 
     return {
-      status: hasServiceData ? "Scheduled" : "No Alerts",
+      status: hasServiceData ? "Đã lên lịch" : "Không có",
       detail: hasServiceData
         ? `${mileageInfo} ${dateInfo} ${extraInfo}`.trim()
-        : "No service alerts",
+        : "Không có cảnh báo bảo dưỡng",
       color: hasServiceData ? "text-blue-600" : "text-gray-500",
       bg: hasServiceData ? "bg-blue-50" : "bg-gray-50",
       iconColor: hasServiceData ? "text-blue-500" : "text-gray-400",
@@ -192,7 +192,7 @@ export default function SystemHealth() {
     if (window_status === undefined || window_status === null) {
       return {
         status: "--",
-        detail: "No window status data",
+        detail: "Không có dữ liệu cửa kính",
         color: "text-gray-400",
         bg: "bg-gray-100",
         iconColor: "text-gray-400",
@@ -204,16 +204,16 @@ export default function SystemHealth() {
 
     if (isOpen) {
       return {
-        status: "Open",
-        detail: "One or more windows are open",
+        status: "Đang mở",
+        detail: "Một hoặc nhiều cửa kính đang mở",
         color: "text-amber-700",
         bg: "bg-amber-50",
         iconColor: "text-amber-500",
       };
     }
     return {
-      status: "Closed",
-      detail: "All windows are closed",
+      status: "Đã đóng",
+      detail: "Tất cả cửa kính đều đóng",
       color: "text-emerald-700",
       bg: "bg-emerald-50",
       iconColor: "text-emerald-500",
@@ -225,7 +225,7 @@ export default function SystemHealth() {
     if (handbrake_status === undefined || handbrake_status === null) {
       return {
         status: "--",
-        detail: "No handbrake data",
+        detail: "Không có dữ liệu phanh tay",
         color: "text-gray-400",
         bg: "bg-gray-100",
         iconColor: "text-gray-400",
@@ -235,16 +235,16 @@ export default function SystemHealth() {
     // Usually 1 = Engaged
     if (handbrake_status) {
       return {
-        status: "Engaged",
-        detail: "Handbrake is ON",
+        status: "Đã kéo",
+        detail: "Phanh tay đang BẬT",
         color: "text-gray-700",
         bg: "bg-gray-100",
         iconColor: "text-red-500", // Red icon for Handbrake is standard
       };
     }
     return {
-      status: "Released",
-      detail: "Handbrake is OFF",
+      status: "Đã nhả",
+      detail: "Phanh tay đang TẮT",
       color: "text-gray-500",
       bg: "bg-gray-50",
       iconColor: "text-gray-400",
@@ -319,7 +319,7 @@ export default function SystemHealth() {
         data.tbox_version && data.tbox_version !== "--"
           ? data.tbox_version
           : "N/A",
-      detail: "T-Box Software Version",
+      detail: "Phiên bản phần mềm T-Box",
       bg: "bg-gray-50",
       txt: "text-gray-600",
       icon: "wifi",
@@ -331,7 +331,7 @@ export default function SystemHealth() {
         data.firmware_version && data.firmware_version !== "--"
           ? data.firmware_version
           : "N/A",
-      detail: "Vehicle Firmware Version",
+      detail: "Phiên bản firmware xe",
       bg: "bg-gray-50",
       txt: "text-gray-600",
       icon: "chip",
@@ -482,13 +482,13 @@ export default function SystemHealth() {
   };
 
   return (
-    <div className="bg-white rounded-3xl p-3 md:p-3 shadow-sm border border-gray-100 flex-1 min-h-0 md:min-h-0 md:max-h-[480px] flex flex-col overflow-hidden relative">
+    <div className="bg-white dark:bg-gray-800 rounded-3xl p-3 md:p-3 shadow-sm border border-gray-100 dark:border-gray-700 flex-1 min-h-0 md:min-h-0 md:max-h-[480px] flex flex-col overflow-hidden relative">
       {/* Shimmer Overlay when Refreshing */}
       {data.isRefreshing && (
         <div className="absolute inset-0 z-20 animate-shimmer opacity-30 pointer-events-none"></div>
       )}
 
-      <h3 className="text-lg font-bold text-gray-900 mb-2 md:mb-1 flex items-center gap-2">
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 md:mb-1 flex items-center gap-2">
         <svg
           className="w-6 h-6 text-blue-600 flex-shrink-0"
           fill="none"
@@ -502,7 +502,7 @@ export default function SystemHealth() {
             d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
           />
         </svg>
-        Vehicle Status
+        Trạng thái xe
       </h3>
 
       {/* MOBILE ONLY: Climate Section */}
@@ -512,7 +512,7 @@ export default function SystemHealth() {
         {/* Outside Temperature */}
         <div className="p-2 rounded-xl text-center bg-gray-50 border border-gray-100 flex flex-col justify-center min-h-[60px]">
           <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-            Outside
+            Ngoài trời
           </p>
           <div className="flex items-center justify-center gap-1.5">
             <svg
@@ -539,7 +539,7 @@ export default function SystemHealth() {
         {/* Cabin Temperature */}
         <div className="p-2 rounded-xl text-center bg-gray-50 border border-gray-100 flex flex-col justify-center min-h-[60px]">
           <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-            Cabin
+            Cabin xe
           </p>
           <span className={`text-base font-black leading-none ${data.inside_temp !== null && data.inside_temp !== undefined ? "text-gray-700" : isWaiting ? "text-gray-300 animate-pulse" : "text-gray-400"}`}>
             {data.inside_temp !== null && data.inside_temp !== undefined
@@ -555,7 +555,7 @@ export default function SystemHealth() {
           <p
             className={`text-[8px] font-bold uppercase tracking-wider mb-1 ${(data.fan_speed ?? 0) > 0 ? "text-blue-400" : "text-gray-400"}`}
           >
-            Fan
+            Quạt
           </p>
           <div className="flex items-center justify-center gap-1">
             {(data.fan_speed ?? 0) > 0 ? (
@@ -581,7 +581,7 @@ export default function SystemHealth() {
               </>
             ) : (
               <span className="text-base font-black text-gray-400 leading-none uppercase">
-                Off
+                Tắt
               </span>
             )}
           </div>
@@ -603,7 +603,7 @@ export default function SystemHealth() {
               {getIcon(item.icon)}
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900 leading-tight whitespace-nowrap">
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight whitespace-nowrap">
                 {item.label}
               </p>
             </div>

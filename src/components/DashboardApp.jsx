@@ -11,7 +11,8 @@ import DigitalTwin from "./DigitalTwin";
 import SystemHealth from "./SystemHealth";
 import MobileNav from "./MobileNav";
 import ErrorBoundary from "./ErrorBoundary";
-import DebugPanel from "./DebugPanel";
+// Debug Panel disabled
+// import DebugPanel from "./DebugPanel";
 
 // Lazy load heavy drawers — only fetched when opened
 const ChargingHistoryDrawer = React.lazy(
@@ -39,8 +40,7 @@ export default function DashboardApp({ vin: initialVin }) {
           This prevents the double data-fetch that caused the loading flash. */}
       <DashboardController vin={initialVin} />
 
-      {/* DebugPanel always visible — even during loading/auth phases */}
-      <DebugPanel />
+      {/* DebugPanel disabled */}
 
       {!isInitialized || !vin ? (
         <AuthGate />
@@ -69,7 +69,7 @@ export default function DashboardApp({ vin: initialVin }) {
                 </div>
                 {/* Mobile only: inline charging history below energy */}
                 {activeTab === "energy_env" && (
-                  <div className="md:hidden mt-4 bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
+                  <div className="md:hidden mt-4 bg-white dark:bg-gray-800 rounded-3xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
                     <ErrorBoundary>
                       <ChargingHistory inline />
                     </ErrorBoundary>
@@ -88,7 +88,7 @@ export default function DashboardApp({ vin: initialVin }) {
 
             {/* CENTER COLUMN: Digital Twin */}
             <div
-              className={`md:col-span-6 relative bg-gray-800/10 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-sm overflow-hidden md:block flex-1 ${activeTab === "vehicle" ? "flex flex-col" : "hidden md:block"}`}
+              className={`md:col-span-6 relative bg-gray-800/10 dark:bg-gray-900/30 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-sm overflow-hidden md:block flex-1 ${activeTab === "vehicle" ? "flex flex-col" : "hidden md:block"}`}
             >
               <ErrorBoundary>
                 <DigitalTwin />
