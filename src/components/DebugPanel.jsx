@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useStore } from "@nanostores/react";
 import { mqttStore } from "../stores/mqttStore";
 import { chargingHistoryStore } from "../stores/chargingHistoryStore";
-import { vehicleStore } from "../stores/vehicleStore";
+import { vehicleStore, getLiveMqttSnapshotForVin } from "../stores/vehicleStore";
 
 /**
  * Diagnostic panel — shows MQTT status, charging data status, active API test
@@ -296,7 +296,15 @@ export default function DebugPanel() {
           <Row label="Battery" value={vehicle.battery_level != null ? `${vehicle.battery_level}%` : "null"} ok={vehicle.battery_level != null} />
           <Row label="Range" value={vehicle.range != null ? `${vehicle.range}km` : "null"} ok={vehicle.range != null} />
           <Row label="Odometer" value={vehicle.odometer != null ? String(vehicle.odometer) : "null"} ok={vehicle.odometer != null} />
+          <Row label="SOH" value={vehicle.soh_percentage != null ? `${vehicle.soh_percentage}%` : "null"} ok={vehicle.soh_percentage != null} />
+          <Row label="Bat Type" value={vehicle.battery_type || "null"} ok={!!vehicle.battery_type} />
+          <Row label="Bat Serial" value={vehicle.battery_serial || "null"} ok={!!vehicle.battery_serial} />
+          <Row label="Bat Mfg" value={vehicle.battery_manufacture_date || "null"} ok={!!vehicle.battery_manufacture_date} />
+          <Row label="Thermal" value={vehicle.thermal_warning != null ? String(vehicle.thermal_warning) : "null"} ok={vehicle.thermal_warning === 0} />
         </Section>
+
+        {/* MQTT Telemetry Keys — shows what data T-Box is actually pushing */}
+        <MqttKeysSection vin={vehicle.vin} />
 
         {/* MQTT */}
         <Section title="MQTT">
@@ -361,5 +369,59 @@ function Row({ label, value, ok }) {
         {value}
       </span>
     </div>
+  );
+}
+
+function MqttKeysSection({ vin }) {
+  const [snapshot, setSnapshot] = useState(null);
+  const [showAll, setShowAll] = useState(false);
+
+  const refresh = useCallback(() => {
+    if (!vin) return;
+    const data = getLiveMqttSnapshotForVin(vin);
+    setSnapshot(data);
+  }, [vin]);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  if (!snapshot || snapshot.length === 0) {
+    return (
+      <Section title="MQTT Keys">
+        <Row label="Keys" value="0 (no data yet)" ok={false} />
+        <button onClick={refresh} className="text-blue-400 text-[9px]">Refresh</button>
+      </Section>
+    );
+  }
+
+  // Highlight BMS keys (34220 = BMS objectId)
+  const bmsKeys = snapshot.filter(s => s.deviceKey?.startsWith("34220_"));
+  const sohKey = snapshot.find(s => s.deviceKey === "34220_00001_00001");
+  const displayed = showAll ? snapshot : snapshot.slice(0, 15);
+
+  return (
+    <Section title={`MQTT Keys (${snapshot.length})`}>
+      <Row label="Total keys" value={String(snapshot.length)} ok={snapshot.length > 10} />
+      <Row label="BMS keys" value={`${bmsKeys.length} (obj 34220)`} ok={bmsKeys.length > 0} />
+      <Row label="SOH (34220/1/1)" value={sohKey ? String(sohKey.value ?? sohKey.raw?.value) : "NOT FOUND"} ok={!!sohKey} />
+      {bmsKeys.length > 0 && (
+        <div className="mt-1">
+          <div className="text-[8px] text-white/40 font-bold">BMS Data:</div>
+          {bmsKeys.map((k, i) => (
+            <div key={i} className="text-[8px] text-cyan-300/80 break-all">
+              {k.deviceKey}: {String(k.raw?.value ?? "").substring(0, 30)} <span className="text-white/30">{k.raw?.name || k.key}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {showAll && displayed.map((k, i) => (
+        <div key={i} className="text-[8px] text-white/50 break-all">
+          {k.key}: {String(k.raw?.value ?? "").substring(0, 40)}
+        </div>
+      ))}
+      <div className="flex gap-2 mt-1">
+        <button onClick={() => setShowAll(!showAll)} className="text-blue-400 text-[9px]">{showAll ? "Hide" : `Show all ${snapshot.length}`}</button>
+        <button onClick={refresh} className="text-blue-400 text-[9px]">Refresh</button>
+      </div>
+    </Section>
   );
 }
