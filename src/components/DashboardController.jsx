@@ -137,7 +137,9 @@ export default function DashboardController({ vin: initialVin }) {
       }
     };
 
-    init();
+    init().catch((e) => {
+      console.error("[DashboardController] init() failed:", e);
+    });
 
     return () => {
       isMounted.current = false;

@@ -11,6 +11,7 @@ import DigitalTwin from "./DigitalTwin";
 import SystemHealth from "./SystemHealth";
 import MobileNav from "./MobileNav";
 import ErrorBoundary from "./ErrorBoundary";
+import DebugPanel from "./DebugPanel";
 
 // Lazy load heavy drawers — only fetched when opened
 const ChargingHistoryDrawer = React.lazy(
@@ -132,6 +133,8 @@ export default function DashboardApp({ vin: initialVin }) {
               />
             )}
           </Suspense>
+
+          <DebugPanel />
         </div>
       )}
     </>
