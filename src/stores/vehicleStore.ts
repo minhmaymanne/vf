@@ -828,10 +828,8 @@ const getVehicleBaseState = (
     warrantyExpirationDate: vehicleInfo.warrantyExpirationDate,
     warrantyMileage: vehicleInfo.warrantyMileage,
     battery_capacity_kwh: batteryCapacity,
-    // Seed odometer from REST if available (MQTT will override with live value)
-    ...(vehicleInfo.odometer != null && Number.isFinite(Number(vehicleInfo.odometer))
-      ? { odometer: Number(vehicleInfo.odometer) }
-      : {}),
+    // NOTE: Do NOT seed odometer from REST API — the value is stale/outdated.
+    // Real-time odometer only comes from MQTT telemetry.
   };
 };
 
