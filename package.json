@@ -31,7 +31,7 @@
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.12",
     "@astrojs/node": "^9.5.3",
-    "@astrojs/react": "^4.4.2",
+    "@astrojs/react": "^5.0.0",
     "@nanostores/react": "^1.0.0",
     "@tailwindcss/vite": "^4.1.18",
     "@types/react": "^19.2.14",
